@@ -1,0 +1,33 @@
+{
+    "name": "zenstruck/url-signer",
+    "description": "Helpers for signing and verifying urls with support for expiring urls.",
+    "homepage": "https://github.com/zenstruck/url-signer",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": ["signed", "url", "symfony"],
+    "authors": [
+        {
+            "name": "Kevin Bond",
+            "email": "kevinbond@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "symfony/http-kernel": "^4.4|^5.0",
+        "symfony/routing": "^4.4|^5.0"
+    },
+    "require-dev": {
+        "symfony/framework-bundle": "^4.4|^5.0",
+        "symfony/phpunit-bridge": "^5.3"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": { "Zenstruck\\UrlSigner\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Zenstruck\\UrlSigner\\Tests\\": "tests/" }
+    }
+}
