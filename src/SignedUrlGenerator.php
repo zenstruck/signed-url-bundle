@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
+use Zenstruck\UrlSigner\Exception\ExpiredUrl;
 use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
@@ -14,6 +15,8 @@ use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
  */
 final class SignedUrlGenerator implements UrlGeneratorInterface
 {
+    private const EXPIRES_AT_KEY = '_expires';
+
     private UrlGeneratorInterface $wrapped;
     private UriSigner $signer;
 
@@ -31,6 +34,16 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
     }
 
     /**
+     * @param \DateTimeInterface|string|int $expiresAt
+     */
+    public function temporary($expiresAt, string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
+    {
+        $parameters[self::EXPIRES_AT_KEY] = self::parseDateTime($expiresAt)->getTimestamp();
+
+        return $this->generate($name, $parameters, $referenceType);
+    }
+
+    /**
      * @param string|Request $url
      *
      * @throws InvalidUrlSignature
@@ -41,11 +54,23 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
             $url = self::urlFromRequest($url);
         }
 
-        if ($this->signer->check($url)) {
+        if (!$this->signer->check($url)) {
+            throw new UrlSignatureMismatch($url);
+        }
+
+        if (!$query = \parse_url($url, PHP_URL_QUERY)) {
             return;
         }
 
-        throw new UrlSignatureMismatch($url);
+        parse_str($query, $query);
+
+        if (!$expiresAt = $query[self::EXPIRES_AT_KEY] ?? null) {
+            return;
+        }
+
+        if ((new \DateTime('now'))->getTimestamp() > $expiresAt) {
+            throw new ExpiredUrl(self::parseDateTime($expiresAt), $url);
+        }
     }
 
     /**
@@ -70,6 +95,19 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
     public function getContext(): RequestContext
     {
         return $this->wrapped->getContext();
+    }
+
+    private static function parseDateTime($datetime): \DateTimeInterface
+    {
+        if ($datetime instanceof \DateTimeInterface) {
+            return $datetime;
+        }
+
+        if (is_int($datetime)) {
+            return \DateTime::createFromFormat('U', $datetime);
+        }
+
+        return new \DateTime($datetime);
     }
 
     private static function urlFromRequest(Request $request): string
