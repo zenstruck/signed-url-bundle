@@ -50,21 +50,13 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
      */
     public function validate($url): void
     {
-        if ($url instanceof Request) {
-            $url = self::urlFromRequest($url);
-        }
+        $request = $url instanceof Request ? $url : Request::create($url);
 
-        if (!$this->signer->check($url)) {
+        if (!$this->signer->checkRequest($request)) {
             throw new UrlSignatureMismatch($url);
         }
 
-        if (!$query = \parse_url($url, PHP_URL_QUERY)) {
-            return;
-        }
-
-        parse_str($query, $query);
-
-        if (!$expiresAt = $query[self::EXPIRES_AT_KEY] ?? null) {
+        if (!$expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY)) {
             return;
         }
 
@@ -103,18 +95,10 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
             return $datetime;
         }
 
-        if (is_int($datetime)) {
+        if (\is_int($datetime)) {
             return \DateTime::createFromFormat('U', $datetime);
         }
 
         return new \DateTime($datetime);
-    }
-
-    private static function urlFromRequest(Request $request): string
-    {
-        $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
-
-        // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
-        return $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs;
     }
 }
