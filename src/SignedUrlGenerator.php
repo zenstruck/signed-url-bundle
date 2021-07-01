@@ -2,6 +2,7 @@
 
 namespace Zenstruck\UrlSigner;
 
+use Composer\InstalledVersions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -11,9 +12,13 @@ use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
+ * Compatibility layer for symfony/routing < 5.0.
+ *
+ * INTERNAL - DO NOT USE DIRECTLY.
+ *
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class SignedUrlGenerator implements UrlGeneratorInterface
+abstract class CompatSignedUrlGenerator implements UrlGeneratorInterface
 {
     private const EXPIRES_AT_KEY = '_expires';
 
@@ -24,13 +29,6 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
     {
         $this->wrapped = $wrapped;
         $this->signer = $signer;
-    }
-
-    public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
-    {
-        $url = $this->wrapped->generate($name, $parameters, $referenceType);
-
-        return $this->signer->sign($url);
     }
 
     /**
@@ -52,7 +50,7 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
     {
         $request = $url instanceof Request ? $url : Request::create($url);
 
-        if (!$this->signer->checkRequest($request)) {
+        if (!$this->checkRequest($request)) {
             throw new UrlSignatureMismatch($url);
         }
 
@@ -89,6 +87,13 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
         return $this->wrapped->getContext();
     }
 
+    protected function doGenerate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
+    {
+        $url = $this->wrapped->generate($name, $parameters, $referenceType);
+
+        return $this->signer->sign($url);
+    }
+
     private static function parseDateTime($datetime): \DateTimeInterface
     {
         if ($datetime instanceof \DateTimeInterface) {
@@ -100,5 +105,46 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
         }
 
         return new \DateTime($datetime);
+    }
+
+    /**
+     * Compatibility layer for symfony/http-kernel < 5.1.
+     *
+     * @see UriSigner::checkRequest() (in symfony/http-kernel >= 5.1)
+     */
+    private function checkRequest(Request $request): bool
+    {
+        if (\method_exists($this->signer, 'checkRequest')) {
+            return $this->signer->checkRequest($request);
+        }
+
+        $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
+
+        // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
+        return $this->signer->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
+    }
+}
+
+if (\version_compare(InstalledVersions::getVersion('symfony/routing'), '5.0', '>=')) {
+    /**
+     * @author Kevin Bond <kevinbond@gmail.com>
+     */
+    final class SignedUrlGenerator extends CompatSignedUrlGenerator
+    {
+        public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
+        {
+            return $this->doGenerate($name, $parameters, $referenceType);
+        }
+    }
+} else {
+    /**
+     * @author Kevin Bond <kevinbond@gmail.com>
+     */
+    final class SignedUrlGenerator extends CompatSignedUrlGenerator
+    {
+        public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
+        {
+            return $this->doGenerate($name, $parameters, $referenceType);
+        }
     }
 }
