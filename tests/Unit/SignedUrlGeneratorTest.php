@@ -27,7 +27,7 @@ final class SignedUrlGeneratorTest extends TestCase
 
         $url = $generator->generate('route1');
 
-        $this->assertRegExp('#^http://localhost/route1\?_hash=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=.+$#', $url);
         $this->assertTrue($generator->isValid($url));
 
         $generator->validate($url);
@@ -64,7 +64,7 @@ final class SignedUrlGeneratorTest extends TestCase
 
         $url = $generator->temporary($expiresAt, 'route1');
 
-        $this->assertRegExp('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue($generator->isValid($url));
 
         $generator->validate($url);
