@@ -4,7 +4,6 @@ namespace Zenstruck\UrlSigner\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
@@ -160,9 +159,6 @@ final class SignedUrlGeneratorTest extends TestCase
         $routes = new RouteCollection();
         $routes->add('route1', new Route('/route1'));
 
-        return new SignedUrlGenerator(
-            new UrlGenerator($routes, new RequestContext()),
-            new UriSigner($secret)
-        );
+        return new SignedUrlGenerator(new UrlGenerator($routes, new RequestContext()), $secret);
     }
 }

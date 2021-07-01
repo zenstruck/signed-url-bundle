@@ -25,10 +25,10 @@ abstract class CompatSignedUrlGenerator implements UrlGeneratorInterface
     private UrlGeneratorInterface $wrapped;
     private UriSigner $signer;
 
-    public function __construct(UrlGeneratorInterface $wrapped, UriSigner $signer)
+    public function __construct(UrlGeneratorInterface $wrapped, string $secret)
     {
         $this->wrapped = $wrapped;
-        $this->signer = $signer;
+        $this->signer = new UriSigner($secret);
     }
 
     /**
