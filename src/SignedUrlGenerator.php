@@ -60,7 +60,7 @@ final class SignedUrlGenerator implements UrlGeneratorInterface
             return;
         }
 
-        if ((new \DateTime('now'))->getTimestamp() > $expiresAt) {
+        if (\time() > $expiresAt) {
             throw new ExpiredUrl(self::parseDateTime($expiresAt), $url);
         }
     }
