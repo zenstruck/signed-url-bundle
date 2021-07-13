@@ -2,7 +2,6 @@
 
 namespace Zenstruck\UrlSigner;
 
-use Composer\InstalledVersions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -12,13 +11,9 @@ use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
- * Compatibility layer for symfony/routing < 5.0.
- *
- * INTERNAL - DO NOT USE DIRECTLY.
- *
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-abstract class CompatSignedUrlGenerator implements UrlGeneratorInterface
+final class SignedUrlGenerator implements UrlGeneratorInterface
 {
     private const EXPIRES_AT_KEY = '_expires';
 
@@ -29,6 +24,13 @@ abstract class CompatSignedUrlGenerator implements UrlGeneratorInterface
     {
         $this->wrapped = $wrapped;
         $this->signer = new UriSigner($secret);
+    }
+
+    public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
+    {
+        $url = $this->wrapped->generate($name, $parameters, $referenceType);
+
+        return $this->signer->sign($url);
     }
 
     /**
@@ -87,13 +89,6 @@ abstract class CompatSignedUrlGenerator implements UrlGeneratorInterface
         return $this->wrapped->getContext();
     }
 
-    protected function doGenerate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
-    {
-        $url = $this->wrapped->generate($name, $parameters, $referenceType);
-
-        return $this->signer->sign($url);
-    }
-
     private static function parseDateTime($datetime): \DateTimeInterface
     {
         if ($datetime instanceof \DateTimeInterface) {
@@ -122,29 +117,5 @@ abstract class CompatSignedUrlGenerator implements UrlGeneratorInterface
 
         // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
         return $this->signer->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
-    }
-}
-
-if (\version_compare(InstalledVersions::getVersion('symfony/routing'), '5.0', '>=')) {
-    /**
-     * @author Kevin Bond <kevinbond@gmail.com>
-     */
-    final class SignedUrlGenerator extends CompatSignedUrlGenerator
-    {
-        public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
-        {
-            return $this->doGenerate($name, $parameters, $referenceType);
-        }
-    }
-} else {
-    /**
-     * @author Kevin Bond <kevinbond@gmail.com>
-     */
-    final class SignedUrlGenerator extends CompatSignedUrlGenerator
-    {
-        public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
-        {
-            return $this->doGenerate($name, $parameters, $referenceType);
-        }
     }
 }

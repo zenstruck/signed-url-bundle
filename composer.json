@@ -13,7 +13,6 @@
     ],
     "require": {
         "php": ">=7.4",
-        "composer-runtime-api": "^2.0",
         "symfony/http-kernel": "^4.4|^5.0",
         "symfony/routing": "^4.4|^5.0"
     },
