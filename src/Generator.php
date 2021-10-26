@@ -19,17 +19,22 @@ final class Generator implements UrlGeneratorInterface
 
     public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
     {
-        return $this->signer->sign($name, $parameters, $referenceType);
+        return $this->factory($name, $parameters, $referenceType);
     }
 
     /**
      * @param \DateTimeInterface|string|int $expiresAt
      */
-    public function temporary($expiresAt, string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
+    public function temporary($expiresAt, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
     {
-        $parameters[Signer::EXPIRES_AT_KEY] = Signer::parseDateTime($expiresAt)->getTimestamp();
+        return $this->factory($route, $parameters, $referenceType)
+            ->expiresAt($expiresAt)
+        ;
+    }
 
-        return $this->generate($name, $parameters, $referenceType);
+    public function factory(string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): Factory
+    {
+        return new Factory($this->signer, $route, $parameters, $referenceType);
     }
 
     /**
