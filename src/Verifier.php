@@ -6,7 +6,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
 use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
-use Zenstruck\UrlSigner\Exception\SingleUseUrlAlreadyUsed;
+use Zenstruck\UrlSigner\Exception\UrlAlreadyUsed;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
@@ -27,9 +27,9 @@ final class Verifier
      * @param string|Request $url
      * @param null|string|callable():string $singleUseToken
      *
-     * @throws UrlSignatureMismatch    If the signed url cannot be verified
-     * @throws ExpiredUrl              If the signed url is valid but expired
-     * @throws SingleUseUrlAlreadyUsed If the url is single use and has already been used
+     * @throws UrlSignatureMismatch If the signed url cannot be verified
+     * @throws ExpiredUrl           If the signed url is valid but expired
+     * @throws UrlAlreadyUsed       If the url is single use and has already been used
      */
     public function verify($url, $singleUseToken = null): void
     {
@@ -41,10 +41,10 @@ final class Verifier
      *
      * @param null|string|callable():string $singleUseToken
      *
-     * @throws \RuntimeException       If no current request available
-     * @throws UrlSignatureMismatch    If the current request cannot be verified
-     * @throws ExpiredUrl              If the current request is valid but expired
-     * @throws SingleUseUrlAlreadyUsed If the current request is single use and has already been used
+     * @throws \RuntimeException    If no current request available
+     * @throws UrlSignatureMismatch If the current request cannot be verified
+     * @throws ExpiredUrl           If the current request is valid but expired
+     * @throws UrlAlreadyUsed       If the current request is single use and has already been used
      */
     public function verifyCurrentRequest($singleUseToken = null): void
     {

@@ -6,8 +6,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
-use Zenstruck\UrlSigner\Exception\SingleUseUrlAlreadyUsed;
 use Zenstruck\UrlSigner\Exception\SingleUseUrlMismatch;
+use Zenstruck\UrlSigner\Exception\UrlAlreadyUsed;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
@@ -64,7 +64,7 @@ final class Signer
         }
 
         if (!\hash_equals($this->hash($singleUseToken), $singleUseHash)) {
-            throw new SingleUseUrlAlreadyUsed($url);
+            throw new UrlAlreadyUsed($url);
         }
     }
 

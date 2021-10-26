@@ -5,6 +5,8 @@ namespace Zenstruck\UrlSigner\Tests\Unit;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
+use Zenstruck\UrlSigner\Exception\SingleUseUrlMismatch;
+use Zenstruck\UrlSigner\Exception\UrlAlreadyUsed;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
@@ -19,7 +21,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $url = self::generator()->generate('route1');
 
-        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=.+$#', $url);
+        $this->assertRegExp('#^http://localhost/route1\?_hash=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url));
 
         self::verifier()->verify($url);
@@ -54,7 +56,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $url = self::generator()->temporary($expiresAt, 'route1');
 
-        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
+        $this->assertRegExp('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url));
 
         self::verifier()->verify($url);
@@ -135,9 +137,73 @@ final class GenerateAndVerifyTest extends UnitTestCase
     /**
      * @test
      */
+    public function verify_current_request_invalid_signature_failure(): void
+    {
+        $generator = self::generator('1234');
+
+        $stack = new RequestStack();
+        $stack->push(Request::create($generator->generate('route1')));
+
+        $verifier = self::verifier('4321', $stack);
+
+        $this->assertFalse($verifier->isCurrentRequestVerified());
+
+        $this->expectException(UrlSignatureMismatch::class);
+
+        $verifier->verifyCurrentRequest();
+    }
+
+    /**
+     * @test
+     */
+    public function verify_current_request_expired_failure(): void
+    {
+        $generator = self::generator('1234');
+
+        $stack = new RequestStack();
+        $stack->push(Request::create($generator->temporary('yesterday', 'route1')));
+
+        $verifier = self::verifier('1234', $stack);
+
+        $this->assertFalse($verifier->isCurrentRequestVerified());
+
+        $this->expectException(ExpiredUrl::class);
+
+        $verifier->verifyCurrentRequest();
+    }
+
+    /**
+     * @test
+     */
+    public function verify_current_request_single_use_failure(): void
+    {
+        $generator = self::generator('1234');
+
+        $stack = new RequestStack();
+        $stack->push(Request::create($generator->singleUse('token1', 'route1')));
+
+        $verifier = self::verifier('1234', $stack);
+
+        $this->assertFalse($verifier->isCurrentRequestVerified());
+
+        $this->expectException(UrlAlreadyUsed::class);
+
+        $verifier->verifyCurrentRequest('token2');
+    }
+
+    /**
+     * @test
+     */
     public function can_generate_and_validate_single_use_url(): void
     {
-        $this->markTestIncomplete();
+        $token = '1234';
+
+        $url = self::generator()->singleUse($token, 'route1');
+
+        $this->assertRegExp('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
+        $this->assertTrue(self::verifier()->isVerified($url, $token));
+
+        self::verifier()->verify($url, $token);
     }
 
     /**
@@ -145,7 +211,14 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_token_can_be_callable(): void
     {
-        $this->markTestIncomplete();
+        $token = fn() => '1234';
+
+        $url = self::generator()->singleUse($token, 'route1');
+
+        $this->assertRegExp('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
+        $this->assertTrue(self::verifier()->isVerified($url, $token));
+
+        self::verifier()->verify($url, $token);
     }
 
     /**
@@ -153,7 +226,20 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_verification_fails_on_token_mismatch(): void
     {
-        $this->markTestIncomplete();
+        $url = self::generator()->singleUse('token1', 'route1');
+        $verifier = self::verifier();
+
+        $this->assertFalse($verifier->isVerified($url, 'token2'));
+
+        try {
+            $verifier->verify($url, 'token2');
+        } catch (UrlAlreadyUsed $e) {
+            $this->assertSame($url, $e->url());
+
+            return;
+        }
+
+        $this->fail('Exception not thrown.');
     }
 
     /**
@@ -161,7 +247,15 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_verification_fails_if_url_not_single_use(): void
     {
-        $this->markTestIncomplete();
+        $url = self::generator()->generate('route1');
+        $verifier = self::verifier();
+
+        $this->assertFalse($verifier->isVerified($url, 'token'));
+
+        $this->expectException(SingleUseUrlMismatch::class);
+        $this->expectExceptionMessage('Expected single user url.');
+
+        $verifier->verify($url, 'token');
     }
 
     /**
@@ -169,21 +263,64 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_verification_if_url_single_use_but_no_token_passed(): void
     {
-        $this->markTestIncomplete();
+        $url = self::generator()->singleUse('token', 'route1');
+        $verifier = self::verifier();
+
+        $this->assertFalse($verifier->isVerified($url));
+
+        $this->expectException(SingleUseUrlMismatch::class);
+        $this->expectExceptionMessage('Given url is single use but this was not expected.');
+
+        $verifier->verify($url);
     }
 
     /**
-     * Order in which failures should occur.
-     *
-     * 1. UrlSignatureMismatch
-     * 2. ExpiredUrl
-     * 3. UrlAlreadyUsed
-     *
      * @test
      */
-    public function single_use_failure_order(): void
+    public function full_featured_url(): void
     {
-        $this->markTestIncomplete();
+        $url = self::generator()->factory('route1')->expiresAt('tomorrow')->singleUse('token1')->create();
+        $verifier = self::verifier();
+
+        $this->assertRegExp('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
+        $this->assertTrue($verifier->isVerified($url, 'token1'));
+        $verifier->verify($url, 'token1');
+    }
+
+    /**
+     * @test
+     */
+    public function url_signature_mismatch_always_fails_first(): void
+    {
+        $url = self::generator('secret1')->factory('route1')->expiresAt('yesterday')->singleUse('token1');
+
+        $this->expectException(UrlSignatureMismatch::class);
+
+        self::verifier('secret2')->verify($url, 'token2');
+    }
+
+    /**
+     * @test
+     */
+    public function expired_url_fails_before_single_use(): void
+    {
+        $url = self::generator()->factory('route1')->expiresAt('yesterday')->singleUse('token1');
+
+        $this->expectException(ExpiredUrl::class);
+
+        self::verifier()->verify($url, 'token2');
+    }
+
+    /**
+     * @test
+     */
+    public function single_use_fails_last(): void
+    {
+        $url = self::generator()->factory('route1')->expiresAt('tomorrow')->singleUse('token1');
+
+        $this->expectException(UrlAlreadyUsed::class);
+
+        self::verifier()->verify($url, 'token2');
     }
 
     public static function validExpirations(): iterable
