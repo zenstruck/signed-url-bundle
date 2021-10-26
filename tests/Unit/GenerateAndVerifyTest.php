@@ -3,6 +3,7 @@
 namespace Zenstruck\UrlSigner\Tests\Unit;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
@@ -112,6 +113,23 @@ final class GenerateAndVerifyTest extends UnitTestCase
         $this->assertTrue(self::verifier()->isVerified($request));
 
         self::verifier()->verify($request);
+    }
+
+    /**
+     * @test
+     */
+    public function can_verify_current_request(): void
+    {
+        $generator = self::generator('1234');
+
+        $stack = new RequestStack();
+        $stack->push(Request::create($generator->generate('route1')));
+
+        $verifier = self::verifier('1234', $stack);
+
+        $this->assertTrue($verifier->isCurrentRequestVerified());
+
+        $verifier->verifyCurrentRequest();
     }
 
     public static function validExpirations(): iterable
