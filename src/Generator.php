@@ -23,7 +23,7 @@ final class Generator implements UrlGeneratorInterface
         $this->router = $router;
     }
 
-    public function generate(string $name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
+    public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
     {
         return $this->signer->sign(
             $this->router->generate($name, $parameters, $referenceType)
