@@ -13,10 +13,8 @@ public function sendPasswordResetEmail(User $user, Generator $generator)
 ```
 
 ```php
-public function resetPasswordAction(Verifier $urlVerifier)
+public function resetPasswordAction(User $user, Verifier $urlVerifier)
 {
-    // $user is the user requesting the password reset
-
     try {
         $urlVerifier->verifyCurrentRequest(singleUseToken: $user->getPassword());
     } catch (ExpiredUrl) {
