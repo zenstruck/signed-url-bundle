@@ -32,6 +32,16 @@ final class Generator implements UrlGeneratorInterface
         ;
     }
 
+    /**
+     * @param string|callable():string $token
+     */
+    public function singleUse($token, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
+    {
+        return $this->factory($route, $parameters, $referenceType)
+            ->singleUse($token)
+        ;
+    }
+
     public function factory(string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): Factory
     {
         return new Factory($this->signer, $route, $parameters, $referenceType);

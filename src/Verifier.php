@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
 use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
+use Zenstruck\UrlSigner\Exception\SingleUseUrlAlreadyUsed;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
@@ -24,40 +25,46 @@ final class Verifier
 
     /**
      * @param string|Request $url
+     * @param null|string|callable():string $singleUseToken
      *
-     * @throws UrlSignatureMismatch If the signed url cannot be verified
-     * @throws ExpiredUrl           If the signed url is valid but expired
+     * @throws UrlSignatureMismatch    If the signed url cannot be verified
+     * @throws ExpiredUrl              If the signed url is valid but expired
+     * @throws SingleUseUrlAlreadyUsed If the url is single use and has already been used
      */
-    public function verify($url): void
+    public function verify($url, $singleUseToken = null): void
     {
-        $this->signer->verify($url);
+        $this->signer->verify($url, $singleUseToken);
     }
 
     /**
      * Attempt to verify the current request.
      *
-     * @throws \RuntimeException    If no current request available
-     * @throws UrlSignatureMismatch If the current request cannot be verified
-     * @throws ExpiredUrl           If the current request is valid but expired
+     * @param null|string|callable():string $singleUseToken
+     *
+     * @throws \RuntimeException       If no current request available
+     * @throws UrlSignatureMismatch    If the current request cannot be verified
+     * @throws ExpiredUrl              If the current request is valid but expired
+     * @throws SingleUseUrlAlreadyUsed If the current request is single use and has already been used
      */
-    public function verifyCurrentRequest(): void
+    public function verifyCurrentRequest($singleUseToken = null): void
     {
         if (!$this->requests || !$request = $this->requests->getCurrentRequest()) {
             throw new \RuntimeException('Current request not available.');
         }
 
-        $this->verify($request);
+        $this->verify($request, $singleUseToken);
     }
 
     /**
      * @param string|Request $url
+     * @param null|string|callable():string $singleUseToken
      *
      * @return bool true if verified, false if not
      */
-    public function isVerified($url): bool
+    public function isVerified($url, $singleUseToken = null): bool
     {
         try {
-            $this->verify($url);
+            $this->verify($url, $singleUseToken);
         } catch (InvalidUrlSignature $e) {
             return false;
         }
@@ -66,14 +73,16 @@ final class Verifier
     }
 
     /**
+     * @param null|string|callable():string $singleUseToken
+     *
      * @return bool true if verified, false if not
      *
      * @throws \RuntimeException If no current request available
      */
-    public function isCurrentRequestVerified(): bool
+    public function isCurrentRequestVerified($singleUseToken = null): bool
     {
         try {
-            $this->verifyCurrentRequest();
+            $this->verifyCurrentRequest($singleUseToken);
         } catch (InvalidUrlSignature $e) {
             return false;
         }

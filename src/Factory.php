@@ -38,6 +38,16 @@ final class Factory
         return $this;
     }
 
+    /**
+     * @param string|callable():string $token
+     */
+    public function singleUse($token): self
+    {
+        $this->parameters[Signer::SINGLE_USE_TOKEN_KEY] = $this->signer->hash($token);
+
+        return $this;
+    }
+
     public function create(): string
     {
         return $this->signer->sign($this->route, $this->parameters, $this->referenceType);

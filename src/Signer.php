@@ -6,6 +6,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
+use Zenstruck\UrlSigner\Exception\SingleUseUrlAlreadyUsed;
+use Zenstruck\UrlSigner\Exception\SingleUseUrlMismatch;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
@@ -16,13 +18,15 @@ use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 final class Signer
 {
     public const EXPIRES_AT_KEY = '_expires';
+    public const SINGLE_USE_TOKEN_KEY = '_token';
 
     private UriSigner $uriSigner;
     private UrlGeneratorInterface $router;
+    private string $secret;
 
     public function __construct(UrlGeneratorInterface $router, string $secret)
     {
-        $this->uriSigner = new UriSigner($secret);
+        $this->uriSigner = new UriSigner($this->secret = $secret);
         $this->router = $router;
     }
 
@@ -31,7 +35,7 @@ final class Signer
         return $this->uriSigner->sign($this->router->generate($route, $parameters, $referenceType));
     }
 
-    public function verify($url): void
+    public function verify($url, $singleUseToken): void
     {
         $request = $url instanceof Request ? $url : Request::create($url);
 
@@ -39,13 +43,34 @@ final class Signer
             throw new UrlSignatureMismatch($url);
         }
 
-        if (!$expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY)) {
+        $expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY);
+
+        if ($expiresAt && \time() > $expiresAt) {
+            throw new ExpiredUrl(self::parseDateTime($expiresAt), $url);
+        }
+
+        $singleUseHash = $request->query->get(self::SINGLE_USE_TOKEN_KEY);
+
+        if (!$singleUseHash && !$singleUseToken) {
             return;
         }
 
-        if (\time() > $expiresAt) {
-            throw new ExpiredUrl(self::parseDateTime($expiresAt), $url);
+        if ($singleUseHash && !$singleUseToken) {
+            throw new SingleUseUrlMismatch($url, 'Given url is single use but this was not expected.');
         }
+
+        if (!$singleUseHash && $singleUseToken) {
+            throw new SingleUseUrlMismatch($url, 'Expected single user url.');
+        }
+
+        if (!\hash_equals($this->hash($singleUseToken), $singleUseHash)) {
+            throw new SingleUseUrlAlreadyUsed($url);
+        }
+    }
+
+    public function hash($token): string
+    {
+        return \base64_encode(\hash_hmac('sha256', self::normalizeToken($token), $this->secret, true));
     }
 
     public static function parseDateTime($timestamp): \DateTimeInterface
@@ -59,6 +84,11 @@ final class Signer
         }
 
         return new \DateTime($timestamp);
+    }
+
+    public static function normalizeToken($token): string
+    {
+        return \is_callable($token) ? $token() : $token;
     }
 
     private function isSignatureValid(Request $request): bool
