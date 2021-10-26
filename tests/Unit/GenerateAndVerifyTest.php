@@ -132,6 +132,60 @@ final class GenerateAndVerifyTest extends UnitTestCase
         $verifier->verifyCurrentRequest();
     }
 
+    /**
+     * @test
+     */
+    public function can_generate_and_validate_single_use_url(): void
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function single_use_token_can_be_callable(): void
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function single_use_verification_fails_on_token_mismatch(): void
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function single_use_verification_fails_if_url_not_single_use(): void
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function single_use_verification_if_url_single_use_but_no_token_passed(): void
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * Order in which failures should occur.
+     *
+     * 1. UrlSignatureMismatch
+     * 2. ExpiredUrl
+     * 3. UrlAlreadyUsed
+     *
+     * @test
+     */
+    public function single_use_failure_order(): void
+    {
+        $this->markTestIncomplete();
+    }
+
     public static function validExpirations(): iterable
     {
         yield [new \DateTime('+1 week')];
