@@ -1,6 +1,6 @@
 {
     "name": "zenstruck/url-signer",
-    "description": "Helpers for signing and verifying urls with support for expiring urls.",
+    "description": "Helpers for signing and verifying urls with support for temporary and single-use urls.",
     "homepage": "https://github.com/zenstruck/url-signer",
     "type": "symfony-bundle",
     "license": "MIT",
@@ -13,11 +13,11 @@
     ],
     "require": {
         "php": ">=7.4",
-        "symfony/http-kernel": "^4.4|^5.0",
-        "symfony/routing": "^4.4|^5.0"
+        "symfony/http-kernel": "^4.4|^5.0|^6.0",
+        "symfony/routing": "^4.4|^5.0|^6.0"
     },
     "require-dev": {
-        "symfony/framework-bundle": "^4.4|^5.0",
+        "symfony/framework-bundle": "^4.4|^5.0|^6.0",
         "symfony/phpunit-bridge": "^5.3"
     },
     "config": {
@@ -29,5 +29,7 @@
     },
     "autoload-dev": {
         "psr-4": { "Zenstruck\\UrlSigner\\Tests\\": "tests/" }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
