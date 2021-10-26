@@ -2,7 +2,6 @@
 
 namespace Zenstruck\UrlSigner;
 
-use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
 
@@ -11,23 +10,16 @@ use Symfony\Component\Routing\RequestContext;
  */
 final class Generator implements UrlGeneratorInterface
 {
-    /** @internal */
-    public const EXPIRES_AT_KEY = '_expires';
+    private Signer $signer;
 
-    private UriSigner $signer;
-    private UrlGeneratorInterface $router;
-
-    public function __construct(UriSigner $signer, UrlGeneratorInterface $router)
+    public function __construct(Signer $signer)
     {
         $this->signer = $signer;
-        $this->router = $router;
     }
 
     public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
     {
-        return $this->signer->sign(
-            $this->router->generate($name, $parameters, $referenceType)
-        );
+        return $this->signer->sign($name, $parameters, $referenceType);
     }
 
     /**
@@ -35,7 +27,7 @@ final class Generator implements UrlGeneratorInterface
      */
     public function temporary($expiresAt, string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
     {
-        $parameters[self::EXPIRES_AT_KEY] = self::parseDateTime($expiresAt)->getTimestamp();
+        $parameters[Signer::EXPIRES_AT_KEY] = Signer::parseDateTime($expiresAt)->getTimestamp();
 
         return $this->generate($name, $parameters, $referenceType);
     }
@@ -45,7 +37,7 @@ final class Generator implements UrlGeneratorInterface
      */
     public function setContext(RequestContext $context): void
     {
-        $this->router->setContext($context);
+        throw new \BadMethodCallException(__METHOD__.'() not available.');
     }
 
     /**
@@ -53,22 +45,6 @@ final class Generator implements UrlGeneratorInterface
      */
     public function getContext(): RequestContext
     {
-        return $this->router->getContext();
-    }
-
-    /**
-     * @internal
-     */
-    public static function parseDateTime($timestamp): \DateTimeInterface
-    {
-        if ($timestamp instanceof \DateTimeInterface) {
-            return $timestamp;
-        }
-
-        if (\is_int($timestamp)) {
-            return \DateTime::createFromFormat('U', $timestamp);
-        }
-
-        return new \DateTime($timestamp);
+        throw new \BadMethodCallException(__METHOD__.'() not available.');
     }
 }

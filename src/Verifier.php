@@ -4,7 +4,6 @@ namespace Zenstruck\UrlSigner;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\UriSigner;
 use Zenstruck\UrlSigner\Exception\ExpiredUrl;
 use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
 use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
@@ -14,10 +13,10 @@ use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
  */
 final class Verifier
 {
-    private UriSigner $signer;
+    private Signer $signer;
     private ?RequestStack $requests;
 
-    public function __construct(UriSigner $signer, ?RequestStack $requests = null)
+    public function __construct(Signer $signer, ?RequestStack $requests = null)
     {
         $this->signer = $signer;
         $this->requests = $requests;
@@ -33,16 +32,16 @@ final class Verifier
     {
         $request = $url instanceof Request ? $url : Request::create($url);
 
-        if (!$this->checkRequest($request)) {
+        if (!$this->signer->check($request)) {
             throw new UrlSignatureMismatch($url);
         }
 
-        if (!$expiresAt = $request->query->getInt(Generator::EXPIRES_AT_KEY)) {
+        if (!$expiresAt = $request->query->getInt(Signer::EXPIRES_AT_KEY)) {
             return;
         }
 
         if (\time() > $expiresAt) {
-            throw new ExpiredUrl(Generator::parseDateTime($expiresAt), $url);
+            throw new ExpiredUrl(Signer::parseDateTime($expiresAt), $url);
         }
     }
 
@@ -92,22 +91,5 @@ final class Verifier
         }
 
         return true;
-    }
-
-    /**
-     * Compatibility layer for symfony/http-kernel < 5.1.
-     *
-     * @see UriSigner::checkRequest() (in symfony/http-kernel >= 5.1)
-     */
-    private function checkRequest(Request $request): bool
-    {
-        if (\method_exists($this->signer, 'checkRequest')) {
-            return $this->signer->checkRequest($request);
-        }
-
-        $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
-
-        // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
-        return $this->signer->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
     }
 }
