@@ -5,6 +5,8 @@ namespace Zenstruck\UrlSigner;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Zenstruck\UrlSigner\Exception\ExpiredUrl;
+use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
 
 /**
  * @internal
@@ -18,9 +20,9 @@ final class Signer
     private UriSigner $uriSigner;
     private UrlGeneratorInterface $router;
 
-    public function __construct(UriSigner $uriSigner, UrlGeneratorInterface $router)
+    public function __construct(UrlGeneratorInterface $router, string $secret)
     {
-        $this->uriSigner = $uriSigner;
+        $this->uriSigner = new UriSigner($secret);
         $this->router = $router;
     }
 
@@ -29,17 +31,21 @@ final class Signer
         return $this->uriSigner->sign($this->router->generate($route, $parameters, $referenceType));
     }
 
-    public function check(Request $request): bool
+    public function verify($url): void
     {
-        if (\method_exists($this->uriSigner, 'checkRequest')) {
-            return $this->uriSigner->checkRequest($request);
+        $request = $url instanceof Request ? $url : Request::create($url);
+
+        if (!$this->isSignatureValid($request)) {
+            throw new UrlSignatureMismatch($url);
         }
 
-        // compatibility layer for symfony/http-kernel < 5.1.
-        $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
+        if (!$expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY)) {
+            return;
+        }
 
-        // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
-        return $this->uriSigner->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
+        if (\time() > $expiresAt) {
+            throw new ExpiredUrl(self::parseDateTime($expiresAt), $url);
+        }
     }
 
     public static function parseDateTime($timestamp): \DateTimeInterface
@@ -53,5 +59,18 @@ final class Signer
         }
 
         return new \DateTime($timestamp);
+    }
+
+    private function isSignatureValid(Request $request): bool
+    {
+        if (\method_exists($this->uriSigner, 'checkRequest')) {
+            return $this->uriSigner->checkRequest($request);
+        }
+
+        // compatibility layer for symfony/http-kernel < 5.1.
+        $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
+
+        // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
+        return $this->uriSigner->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
     }
 }

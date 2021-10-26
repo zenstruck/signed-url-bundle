@@ -30,19 +30,7 @@ final class Verifier
      */
     public function verify($url): void
     {
-        $request = $url instanceof Request ? $url : Request::create($url);
-
-        if (!$this->signer->check($request)) {
-            throw new UrlSignatureMismatch($url);
-        }
-
-        if (!$expiresAt = $request->query->getInt(Signer::EXPIRES_AT_KEY)) {
-            return;
-        }
-
-        if (\time() > $expiresAt) {
-            throw new ExpiredUrl(Signer::parseDateTime($expiresAt), $url);
-        }
+        $this->signer->verify($url);
     }
 
     /**
