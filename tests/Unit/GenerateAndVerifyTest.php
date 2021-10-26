@@ -21,7 +21,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $url = self::generator()->generate('route1');
 
-        $this->assertRegExp('#^http://localhost/route1\?_hash=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url));
 
         self::verifier()->verify($url);
@@ -56,7 +56,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $url = self::generator()->temporary($expiresAt, 'route1');
 
-        $this->assertRegExp('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url));
 
         self::verifier()->verify($url);
@@ -200,7 +200,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $url = self::generator()->singleUse($token, 'route1');
 
-        $this->assertRegExp('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url, $token));
 
         self::verifier()->verify($url, $token);
@@ -215,7 +215,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $url = self::generator()->singleUse($token, 'route1');
 
-        $this->assertRegExp('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url, $token));
 
         self::verifier()->verify($url, $token);
@@ -282,7 +282,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
         $url = self::generator()->factory('route1')->expiresAt('tomorrow')->singleUse('token1')->create();
         $verifier = self::verifier();
 
-        $this->assertRegExp('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue($verifier->isVerified($url, 'token1'));
         $verifier->verify($url, 'token1');
     }
