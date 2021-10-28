@@ -2,11 +2,13 @@
 
 namespace Zenstruck\SignedUrl\DependencyInjection;
 
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Zenstruck\SignedUrl\EventListener\VerifySignedRouteSubscriber;
 use Zenstruck\SignedUrl\Generator;
 use Zenstruck\SignedUrl\Signer;
 use Zenstruck\SignedUrl\Verifier;
@@ -34,6 +36,10 @@ final class ZenstruckSignedUrlExtension extends ConfigurableExtension implements
                     ->defaultValue('%kernel.secret%')
                     ->cannotBeEmpty()
                 ->end()
+                ->booleanNode('route_verification')
+                    ->info('Enable auto route verification (trigger with "_signed" parameter or Signed attribute)')
+                    ->defaultFalse()
+                ->end()
             ->end()
         ;
 
@@ -50,5 +56,13 @@ final class ZenstruckSignedUrlExtension extends ConfigurableExtension implements
             new Reference('zenstruck_signed_url.signer'),
             new Reference('request_stack'),
         ]);
+
+        if ($mergedConfig['route_verification']) {
+            $container->register('zenstruck_signed_url.verify_route', VerifySignedRouteSubscriber::class)
+                ->setArguments([new Reference(ContainerInterface::class)])
+                ->addTag('kernel.event_subscriber')
+                ->addTag('container.service_subscriber')
+            ;
+        }
     }
 }

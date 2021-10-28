@@ -14,4 +14,14 @@ final class Controllers
     {
         return new Response('verified: '.($verifier->isCurrentRequestVerified() ? 'yes' : 'no'));
     }
+
+    public function route2(): Response
+    {
+        return new Response();
+    }
+
+    public function route3(): Response
+    {
+        return new Response();
+    }
 }
