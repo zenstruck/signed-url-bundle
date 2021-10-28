@@ -18,6 +18,8 @@ final class Kernel extends BaseKernel
 {
     use MicroKernelTrait;
 
+    public const SECRET = 'S3CRET';
+
     public function registerBundles(): iterable
     {
         yield new FrameworkBundle();
@@ -30,8 +32,9 @@ final class Kernel extends BaseKernel
         $c->register(Controllers::class)->addTag('controller.service_arguments');
 
         $c->loadFromExtension('framework', [
-            'secret' => 'S3CRET',
+            'secret' => self::SECRET,
             'test' => true,
+            'router' => ['utf8' => true],
         ]);
     }
 
