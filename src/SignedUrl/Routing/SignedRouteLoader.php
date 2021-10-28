@@ -18,7 +18,7 @@ final class SignedRouteLoader implements LoaderInterface
         $this->inner = $inner;
     }
 
-    public function load($resource, ?string $type = null): RouteCollection
+    public function load($resource, $type = null): RouteCollection
     {
         /** @var RouteCollection $routes */
         $routes = $this->inner->load($resource, $type);
@@ -32,7 +32,7 @@ final class SignedRouteLoader implements LoaderInterface
         return $routes;
     }
 
-    public function supports($resource, ?string $type = null): bool
+    public function supports($resource, $type = null): bool
     {
         return $this->inner->supports($resource, $type);
     }
