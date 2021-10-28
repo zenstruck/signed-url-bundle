@@ -77,9 +77,11 @@ final class GenerateAndVerifyTest extends UnitTestCase
         } catch (ExpiredUrl $e) {
             $this->assertSame($url, $e->url());
             $this->assertContains($expected->getTimestamp(), [
+                $e->expiredAt()->getTimestamp() - 2,
                 $e->expiredAt()->getTimestamp() - 1,
                 $e->expiredAt()->getTimestamp(),
                 $e->expiredAt()->getTimestamp() + 1,
+                $e->expiredAt()->getTimestamp() + 2,
             ]);
 
             return;
