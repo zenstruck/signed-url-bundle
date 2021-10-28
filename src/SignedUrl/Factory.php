@@ -2,6 +2,8 @@
 
 namespace Zenstruck\SignedUrl;
 
+use Zenstruck\SignedUrl;
+
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
@@ -11,6 +13,7 @@ final class Factory
     private string $route;
     private array $parameters;
     private int $referenceType;
+    private ?\DateTimeInterface $expiresAt = null;
 
     /**
      * @internal
@@ -33,7 +36,8 @@ final class Factory
      */
     public function expiresAt($when): self
     {
-        $this->parameters[Signer::EXPIRES_AT_KEY] = Signer::parseDateTime($when)->getTimestamp();
+        $this->expiresAt = Signer::parseDateTime($when);
+        $this->parameters[Signer::EXPIRES_AT_KEY] = $this->expiresAt->getTimestamp();
 
         return $this;
     }
@@ -48,8 +52,12 @@ final class Factory
         return $this;
     }
 
-    public function create(): string
+    public function create(): SignedUrl
     {
-        return $this->signer->sign($this->route, $this->parameters, $this->referenceType);
+        return new SignedUrl(
+            $this->signer->sign($this->route, $this->parameters, $this->referenceType),
+            $this->expiresAt,
+            isset($this->parameters[Signer::SINGLE_USE_TOKEN_KEY])
+        );
     }
 }
