@@ -73,7 +73,7 @@ final class Signer
         return \base64_encode(\hash_hmac('sha256', self::normalizeToken($token), $this->secret, true));
     }
 
-    public static function normalizeToken($token): string
+    private static function normalizeToken($token): string
     {
         return \is_callable($token) ? $token() : $token;
     }
