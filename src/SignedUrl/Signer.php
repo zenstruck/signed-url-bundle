@@ -35,7 +35,7 @@ final class Signer
         return $this->uriSigner->sign($this->router->generate($route, $parameters, $referenceType));
     }
 
-    public function verify($url, $singleUseToken): void
+    public function verify($url, ?string $singleUseToken): void
     {
         $request = $url instanceof Request ? $url : Request::create($url);
 
@@ -68,14 +68,9 @@ final class Signer
         }
     }
 
-    public function hash($token): string
+    public function hash(string $token): string
     {
-        return \base64_encode(\hash_hmac('sha256', self::normalizeToken($token), $this->secret, true));
-    }
-
-    private static function normalizeToken($token): string
-    {
-        return \is_callable($token) ? $token() : $token;
+        return \base64_encode(\hash_hmac('sha256', $token, $this->secret, true));
     }
 
     private function isSignatureValid(Request $request): bool

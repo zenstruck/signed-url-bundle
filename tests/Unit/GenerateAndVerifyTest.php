@@ -211,9 +211,14 @@ final class GenerateAndVerifyTest extends UnitTestCase
     /**
      * @test
      */
-    public function single_use_token_can_be_callable(): void
+    public function single_use_token_can_be_stringable_object(): void
     {
-        $token = fn() => '1234';
+        $token = new class() {
+            public function __toString(): string
+            {
+                return '1234';
+            }
+        };
 
         $url = self::generator()->singleUse($token, 'route1');
 

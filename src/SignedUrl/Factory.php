@@ -56,10 +56,7 @@ final class Factory
         return $this;
     }
 
-    /**
-     * @param string|callable():string $token
-     */
-    public function singleUse($token): self
+    public function singleUse(string $token): self
     {
         $this->parameters[Signer::SINGLE_USE_TOKEN_KEY] = $this->signer->hash($token);
 
