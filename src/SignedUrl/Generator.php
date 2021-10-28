@@ -23,12 +23,14 @@ final class Generator implements UrlGeneratorInterface
     }
 
     /**
-     * @param \DateTimeInterface|string|int $expiresAt
+     * @param \DateTimeInterface|string|int $expiresAt \DateTimeInterface: the exact time the link should expire
+     *                                                 string: used to construct a datetime object (ie "+1 hour")
+     *                                                 int: # of seconds until the link expires
      */
     public function temporary($expiresAt, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
     {
         return $this->factory($route, $parameters, $referenceType)
-            ->expiresAt($expiresAt)
+            ->expires($expiresAt)
         ;
     }
 

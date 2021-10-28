@@ -32,11 +32,25 @@ final class Factory
     }
 
     /**
-     * @param \DateTimeInterface|string|int $when
+     * @param \DateTimeInterface|string|int $when \DateTimeInterface: the exact time the link should expire
+     *                                            string: used to construct a datetime object (ie "+1 hour")
+     *                                            int: # of seconds until the link expires
      */
-    public function expiresAt($when): self
+    public function expires($when): self
     {
-        $this->expiresAt = Signer::parseDateTime($when);
+        if (\is_numeric($when)) {
+            $when = \DateTime::createFromFormat('U', \time() + $when);
+        }
+
+        if (\is_string($when)) {
+            $when = new \DateTime($when);
+        }
+
+        if (!$when instanceof \DateTimeInterface) {
+            throw new \InvalidArgumentException(\sprintf('%s is not a valid expires at.', \get_debug_type($when)));
+        }
+
+        $this->expiresAt = $when;
         $this->parameters[Signer::EXPIRES_AT_KEY] = $this->expiresAt->getTimestamp();
 
         return $this;

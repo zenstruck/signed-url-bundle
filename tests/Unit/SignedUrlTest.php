@@ -26,7 +26,7 @@ final class SignedUrlTest extends UnitTestCase
     public function temporary(): void
     {
         $expected = new \DateTime('tomorrow');
-        $url = self::generator()->factory('route1')->expiresAt($expected)->create();
+        $url = self::generator()->factory('route1')->expires($expected)->create();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue($url->isTemporary());
@@ -53,7 +53,7 @@ final class SignedUrlTest extends UnitTestCase
     public function full_featured(): void
     {
         $expected = new \DateTime('tomorrow');
-        $url = self::generator()->factory('route1')->expiresAt($expected)->singleUse('token1')->create();
+        $url = self::generator()->factory('route1')->expires($expected)->singleUse('token1')->create();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue($url->isTemporary());

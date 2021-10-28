@@ -46,7 +46,7 @@ final class Signer
         $expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY);
 
         if ($expiresAt && \time() > $expiresAt) {
-            throw new ExpiredUrl(self::parseDateTime($expiresAt), $url);
+            throw new ExpiredUrl(\DateTime::createFromFormat('U', $expiresAt), $url);
         }
 
         $singleUseHash = $request->query->get(self::SINGLE_USE_TOKEN_KEY);
@@ -71,19 +71,6 @@ final class Signer
     public function hash($token): string
     {
         return \base64_encode(\hash_hmac('sha256', self::normalizeToken($token), $this->secret, true));
-    }
-
-    public static function parseDateTime($timestamp): \DateTimeInterface
-    {
-        if ($timestamp instanceof \DateTimeInterface) {
-            return $timestamp;
-        }
-
-        if (\is_int($timestamp)) {
-            return \DateTime::createFromFormat('U', $timestamp);
-        }
-
-        return new \DateTime($timestamp);
     }
 
     public static function normalizeToken($token): string
