@@ -35,7 +35,7 @@ final class VerifySignedRouteSubscriber implements EventSubscriberInterface, Ser
         try {
             $this->container->get(Verifier::class)->verify($request);
         } catch (InvalidUrlSignature $e) {
-            throw new HttpException(\is_int($check) ? $check : 403, $e->getMessage(), $e);
+            throw new HttpException(\is_int($check) ? $check : 403, $e->messageKey(), $e);
         }
     }
 
