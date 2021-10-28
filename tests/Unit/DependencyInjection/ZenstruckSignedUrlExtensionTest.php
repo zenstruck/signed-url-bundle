@@ -6,6 +6,7 @@ use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use Zenstruck\SignedUrl\DependencyInjection\ZenstruckSignedUrlExtension;
 use Zenstruck\SignedUrl\EventListener\VerifySignedRouteSubscriber;
 use Zenstruck\SignedUrl\Generator;
+use Zenstruck\SignedUrl\Routing\SignedRouteLoader;
 use Zenstruck\SignedUrl\Signer;
 use Zenstruck\SignedUrl\Verifier;
 
@@ -26,6 +27,7 @@ final class ZenstruckSignedUrlExtensionTest extends AbstractExtensionTestCase
         $this->assertContainerBuilderHasService(Generator::class);
         $this->assertContainerBuilderHasService(Verifier::class);
         $this->assertContainerBuilderNotHasService('zenstruck_signed_url.verify_route');
+        $this->assertContainerBuilderNotHasService('zenstruck_signed_url.route_loader');
     }
 
     /**
@@ -49,6 +51,7 @@ final class ZenstruckSignedUrlExtensionTest extends AbstractExtensionTestCase
         $this->assertContainerBuilderHasService('zenstruck_signed_url.verify_route', VerifySignedRouteSubscriber::class);
         $this->assertContainerBuilderHasServiceDefinitionWithTag('zenstruck_signed_url.verify_route', 'kernel.event_subscriber');
         $this->assertContainerBuilderHasServiceDefinitionWithTag('zenstruck_signed_url.verify_route', 'container.service_subscriber');
+        $this->assertContainerBuilderHasService('zenstruck_signed_url.route_loader', SignedRouteLoader::class);
     }
 
     protected function getContainerExtensions(): array
