@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenstruck\UrlSigner;
+namespace Zenstruck\SignedUrl;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;

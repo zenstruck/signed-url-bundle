@@ -1,9 +1,9 @@
 <?php
 
-namespace Zenstruck\UrlSigner\Tests\Unit;
+namespace Zenstruck\SignedUrl\Tests\Unit;
 
 use Symfony\Component\Routing\RequestContext;
-use Zenstruck\UrlSigner\Generator;
+use Zenstruck\SignedUrl\Generator;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

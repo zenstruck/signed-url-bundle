@@ -1,7 +1,7 @@
 {
-    "name": "zenstruck/url-signer",
+    "name": "zenstruck/signed-url-bundle",
     "description": "Helpers for signing and verifying urls with support for temporary and single-use urls.",
-    "homepage": "https://github.com/zenstruck/url-signer",
+    "homepage": "https://github.com/zenstruck/signed-url-bundle",
     "type": "symfony-bundle",
     "license": "MIT",
     "keywords": ["signed", "url", "symfony"],
@@ -25,10 +25,10 @@
         "sort-packages": true
     },
     "autoload": {
-        "psr-4": { "Zenstruck\\UrlSigner\\": "src/" }
+        "psr-4": { "Zenstruck\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "Zenstruck\\UrlSigner\\Tests\\": "tests/" }
+        "psr-4": { "Zenstruck\\SignedUrl\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

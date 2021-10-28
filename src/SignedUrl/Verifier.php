@@ -1,13 +1,13 @@
 <?php
 
-namespace Zenstruck\UrlSigner;
+namespace Zenstruck\SignedUrl;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Zenstruck\UrlSigner\Exception\ExpiredUrl;
-use Zenstruck\UrlSigner\Exception\InvalidUrlSignature;
-use Zenstruck\UrlSigner\Exception\UrlAlreadyUsed;
-use Zenstruck\UrlSigner\Exception\UrlSignatureMismatch;
+use Zenstruck\SignedUrl\Exception\ExpiredUrl;
+use Zenstruck\SignedUrl\Exception\InvalidUrlSignature;
+use Zenstruck\SignedUrl\Exception\UrlAlreadyUsed;
+use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

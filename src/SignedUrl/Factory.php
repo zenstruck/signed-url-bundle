@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenstruck\UrlSigner;
+namespace Zenstruck\SignedUrl;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

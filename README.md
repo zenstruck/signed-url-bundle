@@ -1,4 +1,4 @@
-# todo
+# zenstruck/signed-url-bundle
 
 ```php
 public function sendPasswordResetEmail(User $user, Generator $generator)

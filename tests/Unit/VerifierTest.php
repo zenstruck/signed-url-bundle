@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenstruck\UrlSigner\Tests\Unit;
+namespace Zenstruck\SignedUrl\Tests\Unit;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenstruck\UrlSigner\Tests\Unit;
+namespace Zenstruck\SignedUrl\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -8,9 +8,9 @@ use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
-use Zenstruck\UrlSigner\Generator;
-use Zenstruck\UrlSigner\Signer;
-use Zenstruck\UrlSigner\Verifier;
+use Zenstruck\SignedUrl\Generator;
+use Zenstruck\SignedUrl\Signer;
+use Zenstruck\SignedUrl\Verifier;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

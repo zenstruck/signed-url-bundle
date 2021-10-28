@@ -1,6 +1,6 @@
 <?php
 
-namespace Zenstruck\UrlSigner\Exception;
+namespace Zenstruck\SignedUrl\Exception;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
