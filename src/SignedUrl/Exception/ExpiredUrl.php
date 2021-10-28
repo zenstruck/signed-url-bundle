@@ -20,4 +20,9 @@ final class ExpiredUrl extends InvalidUrlSignature
     {
         return $this->expiredAt;
     }
+
+    public function messageKey(): string
+    {
+        return 'URL is expired.';
+    }
 }

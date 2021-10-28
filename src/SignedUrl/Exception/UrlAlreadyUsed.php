@@ -7,8 +7,13 @@ namespace Zenstruck\SignedUrl\Exception;
  */
 final class UrlAlreadyUsed extends InvalidUrlSignature
 {
-    public function __construct(string $url, $message = 'Single use URL has already used.')
+    public function __construct(string $url, $message = 'URL has already been used.')
     {
         parent::__construct($url, $message);
+    }
+
+    public function messageKey(): string
+    {
+        return 'URL has already been used.';
     }
 }

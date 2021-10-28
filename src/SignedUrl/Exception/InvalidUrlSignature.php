@@ -16,8 +16,16 @@ abstract class InvalidUrlSignature extends \RuntimeException
         $this->url = $url;
     }
 
-    public function url(): string
+    final public function url(): string
     {
         return $this->url;
+    }
+
+    /**
+     * Unchanging message key for translations.
+     */
+    public function messageKey(): string
+    {
+        return 'Invalid URL Signature.';
     }
 }
