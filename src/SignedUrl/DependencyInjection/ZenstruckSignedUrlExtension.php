@@ -8,6 +8,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Zenstruck\SignedUrl\Attribute\Signed;
 use Zenstruck\SignedUrl\EventListener\VerifySignedRouteSubscriber;
 use Zenstruck\SignedUrl\Generator;
 use Zenstruck\SignedUrl\Routing\SignedRouteLoader;
@@ -38,7 +39,7 @@ final class ZenstruckSignedUrlExtension extends ConfigurableExtension implements
                     ->cannotBeEmpty()
                 ->end()
                 ->booleanNode('route_verification')
-                    ->info('Enable auto route verification (trigger with "signed" route option)')
+                    ->info(\sprintf('Enable auto route verification (trigger with "signed" route option or "%s" attribute)', Signed::class))
                     ->defaultFalse()
                 ->end()
             ->end()

@@ -31,6 +31,7 @@ final class Kernel extends BaseKernel
     {
         $c->register(Service::class)->setAutowired(true)->setPublic(true);
         $c->register(Controllers::class)->addTag('controller.service_arguments');
+        $c->register(MoreControllers::class)->addTag('controller.service_arguments');
         $c->register('logger', NullLogger::class);
 
         $c->loadFromExtension('framework', [
@@ -52,6 +53,9 @@ final class Kernel extends BaseKernel
             $routes->add('/route1', Controllers::class.'::route1', 'route1');
             $routes->add('/route2', Controllers::class.'::route2', 'route2')->addOptions(['signed' => true]);
             $routes->add('/route3', Controllers::class.'::route3', 'route3')->addOptions(['signed' => 404]);
+            $routes->add('/route4', Controllers::class.'::route4', 'route4');
+            $routes->add('/route5', Controllers::class.'::route5', 'route5');
+            $routes->add('/route6', MoreControllers::class.'::route6', 'route6');
 
             return;
         }
@@ -59,5 +63,8 @@ final class Kernel extends BaseKernel
         $routes->add('route1', '/route1')->controller(Controllers::class.'::route1');
         $routes->add('route2', '/route2')->controller(Controllers::class.'::route2')->options(['signed' => true]);
         $routes->add('route3', '/route3')->controller(Controllers::class.'::route3')->options(['signed' => 404]);
+        $routes->add('route4', '/route4')->controller(Controllers::class.'::route4');
+        $routes->add('route5', '/route5')->controller(Controllers::class.'::route5');
+        $routes->add('route6', '/route6')->controller(MoreControllers::class.'::route6');
     }
 }

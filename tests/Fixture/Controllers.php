@@ -3,6 +3,7 @@
 namespace Zenstruck\SignedUrl\Tests\Fixture;
 
 use Symfony\Component\HttpFoundation\Response;
+use Zenstruck\SignedUrl\Attribute\Signed;
 use Zenstruck\SignedUrl\Verifier;
 
 /**
@@ -21,6 +22,18 @@ final class Controllers
     }
 
     public function route3(): Response
+    {
+        return new Response();
+    }
+
+    #[Signed]
+    public function route4(): Response
+    {
+        return new Response();
+    }
+
+    #[Signed(status: 404)]
+    public function route5(): Response
     {
         return new Response();
     }
