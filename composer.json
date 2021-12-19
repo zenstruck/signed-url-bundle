@@ -13,7 +13,8 @@
     ],
     "require": {
         "php": ">=7.4",
-        "symfony/framework-bundle": "^4.4|^5.0|^6.0"
+        "symfony/framework-bundle": "^4.4|^5.0|^6.0",
+        "symfony/polyfill-php80": "^1.15"
     },
     "require-dev": {
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
