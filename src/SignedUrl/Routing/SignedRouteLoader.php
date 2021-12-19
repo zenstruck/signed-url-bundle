@@ -10,6 +10,8 @@ use Zenstruck\SignedUrl\Attribute\Signed;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @internal
  */
 final class SignedRouteLoader implements LoaderInterface
 {

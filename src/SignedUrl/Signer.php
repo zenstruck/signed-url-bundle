@@ -11,9 +11,9 @@ use Zenstruck\SignedUrl\Exception\UrlAlreadyUsed;
 use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
 
 /**
- * @internal
- *
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @internal
  */
 final class Signer
 {

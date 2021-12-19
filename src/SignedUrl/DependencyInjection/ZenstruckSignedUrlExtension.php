@@ -16,9 +16,9 @@ use Zenstruck\SignedUrl\Signer;
 use Zenstruck\SignedUrl\Verifier;
 
 /**
- * @internal
- *
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @internal
  */
 final class ZenstruckSignedUrlExtension extends ConfigurableExtension implements ConfigurationInterface
 {

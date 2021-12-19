@@ -11,9 +11,9 @@ use Zenstruck\SignedUrl\Exception\InvalidUrlSignature;
 use Zenstruck\SignedUrl\Verifier;
 
 /**
- * @internal
- *
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @internal
  */
 final class VerifySignedRouteSubscriber implements EventSubscriberInterface, ServiceSubscriberInterface
 {
