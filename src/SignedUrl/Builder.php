@@ -7,7 +7,7 @@ use Zenstruck\SignedUrl;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class Factory
+final class Builder
 {
     private Signer $signer;
     private string $route;

@@ -11,7 +11,7 @@ use cases include:
 ```php
 public function sendPasswordResetEmail(User $user, Generator $generator)
 {
-    $resetUrl = $generator->factory('password_reset_route')
+    $resetUrl = $generator->builder('password_reset_route')
         ->expires('+1 day')
         ->singleUse($user->getPassword())
     ;

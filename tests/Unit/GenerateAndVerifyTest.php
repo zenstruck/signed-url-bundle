@@ -286,7 +286,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function full_featured_url(): void
     {
-        $url = self::generator()->factory('route1')->expires('tomorrow')->singleUse('token1')->create();
+        $url = self::generator()->builder('route1')->expires('tomorrow')->singleUse('token1')->create();
         $verifier = self::verifier();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
@@ -299,7 +299,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function url_signature_mismatch_always_fails_first(): void
     {
-        $url = self::generator('secret1')->factory('route1')->expires('yesterday')->singleUse('token1');
+        $url = self::generator('secret1')->builder('route1')->expires('yesterday')->singleUse('token1');
 
         $this->expectException(UrlSignatureMismatch::class);
 
@@ -311,7 +311,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function expired_url_fails_before_single_use(): void
     {
-        $url = self::generator()->factory('route1')->expires('yesterday')->singleUse('token1');
+        $url = self::generator()->builder('route1')->expires('yesterday')->singleUse('token1');
 
         $this->expectException(ExpiredUrl::class);
 
@@ -323,7 +323,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_fails_last(): void
     {
-        $url = self::generator()->factory('route1')->expires('tomorrow')->singleUse('token1');
+        $url = self::generator()->builder('route1')->expires('tomorrow')->singleUse('token1');
 
         $this->expectException(UrlAlreadyUsed::class);
 
