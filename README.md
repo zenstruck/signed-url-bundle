@@ -3,8 +3,9 @@
 Helpers for signing and verifying urls with support for temporary and single-use urls. Some common
 use cases include:
 
-- [Stateless Password Resets](#password-resets)
-- [Stateless Email Verification](#email-verification)
+- [Stateless Password Resets](#stateless-password-resets)
+- [Stateless Email Verification](#stateless-email-verification)
+- [Stateless Verified Change Email](#stateless-verified-change-email)
 - [Login Links](#login-links)
 
 ```php
@@ -157,8 +158,10 @@ $verifier->verifyCurrentRequest(new ResetPasswordToken($user));
 
 ## Cookbook
 
-### Password Resets
+### Stateless Password Resets
 
-### Email Verification
+### Stateless Email Verification
+
+### Stateless Verified Change Email
 
 ### Login Links
