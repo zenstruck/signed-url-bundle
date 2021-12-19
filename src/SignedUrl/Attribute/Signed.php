@@ -8,7 +8,10 @@ namespace Zenstruck\SignedUrl\Attribute;
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD)]
 final class Signed
 {
-    public function __construct(public int $status = 403)
+    public int $status;
+
+    public function __construct(int $status = 403)
     {
+        $this->status = $status;
     }
 }
