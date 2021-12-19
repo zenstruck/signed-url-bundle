@@ -32,7 +32,7 @@ final class Verifier
      */
     public function verify($url, ?string $singleUseToken = null): void
     {
-        $this->signer->verify($url, $singleUseToken);
+        $this->signer->verify($url instanceof Request ? $url : Request::create($url), $singleUseToken);
     }
 
     /**

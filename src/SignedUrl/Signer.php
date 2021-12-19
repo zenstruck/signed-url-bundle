@@ -45,12 +45,8 @@ final class Signer
         return $this->uriSigner->sign($url);
     }
 
-    /**
-     * @param string|Request $url
-     */
-    public function verify($url, ?string $singleUseToken): void
+    public function verify(Request $request, ?string $singleUseToken): void
     {
-        $request = $url instanceof Request ? $url : Request::create($url);
         $url = $request->getUri();
 
         if (!self::isSignatureValid($this->uriSigner, $request)) {
