@@ -33,9 +33,9 @@ final class ZenstruckSignedUrlExtensionTest extends AbstractExtensionTestCase
     /**
      * @test
      */
-    public function can_configure_key(): void
+    public function can_configure_secret(): void
     {
-        $this->load(['key' => 'custom-key']);
+        $this->load(['secret' => 'custom-key']);
 
         $this->assertContainerBuilderHasService('zenstruck_signed_url.signer', Signer::class);
         $this->assertContainerBuilderHasServiceDefinitionWithArgument('zenstruck_signed_url.signer', 1, 'custom-key');

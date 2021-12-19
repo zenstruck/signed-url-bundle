@@ -33,8 +33,8 @@ final class ZenstruckSignedUrlExtension extends ConfigurableExtension implements
 
         $builder->getRootNode()
             ->children()
-                ->scalarNode('key')
-                    ->info('The key to sign urls with')
+                ->scalarNode('secret')
+                    ->info('The secret key to sign urls with')
                     ->defaultValue('%kernel.secret%')
                     ->cannotBeEmpty()
                 ->end()
@@ -51,7 +51,7 @@ final class ZenstruckSignedUrlExtension extends ConfigurableExtension implements
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
         $container->register('zenstruck_signed_url.signer', Signer::class)
-            ->setArguments([new Reference('router'), $mergedConfig['key']])
+            ->setArguments([new Reference('router'), $mergedConfig['secret']])
         ;
         $container->register(Generator::class)->setArguments([new Reference('zenstruck_signed_url.signer')]);
         $container->register(Verifier::class)->setArguments([
