@@ -211,6 +211,21 @@ final class GenerateAndVerifyTest extends UnitTestCase
     /**
      * @test
      */
+    public function can_generate_and_validate_single_use_url_with_extra_query_parameters(): void
+    {
+        $token = '1234';
+
+        $url = self::generator()->singleUse($token, 'route1', ['foo' => 'bar']);
+
+        $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+foo=bar$#', $url);
+        $this->assertTrue(self::verifier()->isVerified($url, $token));
+
+        self::verifier()->verify($url, $token);
+    }
+
+    /**
+     * @test
+     */
     public function single_use_token_can_be_stringable_object(): void
     {
         $token = new class() {

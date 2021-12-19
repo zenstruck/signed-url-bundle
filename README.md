@@ -98,8 +98,8 @@ to determine this token and depends on the context. A good example is a password
 urls, the token would be the current user's password. Once they successfully change their password
 the token wouldn't match so the url would be invalid.
 
-**NOTE**: The token is hashed the same way signed urls are hashed so there isn't the possibility of
-*leaking* sensitive information.
+**NOTE**: The URL is first hashed with this token, then hashed again with the app-level secret
+to ensure it hasn't been tampered with.
 
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */

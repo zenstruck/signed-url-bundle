@@ -14,6 +14,7 @@ final class Builder
     private array $parameters;
     private int $referenceType;
     private ?\DateTimeInterface $expiresAt = null;
+    private ?string $singleUseToken = null;
 
     /**
      * @internal
@@ -57,7 +58,7 @@ final class Builder
 
     public function singleUse(string $token): self
     {
-        $this->parameters[Signer::SINGLE_USE_TOKEN_KEY] = $this->signer->hash($token);
+        $this->singleUseToken = $token;
 
         return $this;
     }
@@ -65,9 +66,15 @@ final class Builder
     public function create(): SignedUrl
     {
         return new SignedUrl(
-            $this->signer->sign($this->route, $this->parameters, $this->referenceType, $this->expiresAt),
+            $this->signer->sign(
+                $this->route,
+                $this->parameters,
+                $this->referenceType,
+                $this->expiresAt,
+                $this->singleUseToken
+            ),
             $this->expiresAt,
-            isset($this->parameters[Signer::SINGLE_USE_TOKEN_KEY])
+            (bool) $this->singleUseToken
         );
     }
 }

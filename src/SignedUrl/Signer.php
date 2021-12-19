@@ -17,33 +17,43 @@ use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
  */
 final class Signer
 {
-    public const SINGLE_USE_TOKEN_KEY = '_token';
+    private const SIGNATURE_KEY = '_hash';
     private const EXPIRES_AT_KEY = '_expires';
+    private const SINGLE_USE_TOKEN_KEY = '_token';
 
     private UriSigner $uriSigner;
     private UrlGeneratorInterface $router;
-    private string $secret;
 
     public function __construct(UrlGeneratorInterface $router, string $secret)
     {
-        $this->uriSigner = new UriSigner($this->secret = $secret);
+        $this->uriSigner = new UriSigner($secret, self::SIGNATURE_KEY);
         $this->router = $router;
     }
 
-    public function sign(string $route, array $parameters, int $referenceType, ?\DateTimeInterface $expiresAt): string
+    public function sign(string $route, array $parameters, int $referenceType, ?\DateTimeInterface $expiresAt, ?string $singleUseToken): string
     {
         if ($expiresAt) {
             $parameters[self::EXPIRES_AT_KEY] = $expiresAt->getTimestamp();
         }
 
-        return $this->uriSigner->sign($this->router->generate($route, $parameters, $referenceType));
+        $url = $this->router->generate($route, $parameters, $referenceType);
+
+        if ($singleUseToken) {
+            $url = self::singleUseSigner($singleUseToken)->sign($url);
+        }
+
+        return $this->uriSigner->sign($url);
     }
 
+    /**
+     * @param string|Request $url
+     */
     public function verify($url, ?string $singleUseToken): void
     {
         $request = $url instanceof Request ? $url : Request::create($url);
+        $url = $request->getUri();
 
-        if (!$this->isSignatureValid($request)) {
+        if (!self::isSignatureValid($this->uriSigner, $request)) {
             throw new UrlSignatureMismatch($url);
         }
 
@@ -67,26 +77,37 @@ final class Signer
             throw new SingleUseUrlMismatch($url, 'Expected single user url.');
         }
 
-        if (!\hash_equals($this->hash($singleUseToken), $singleUseHash)) {
+        if (!self::isSignatureValid(self::singleUseSigner($singleUseToken), self::removeSignatureKey($request))) {
             throw new UrlAlreadyUsed($url);
         }
     }
 
-    public function hash(string $token): string
+    private static function removeSignatureKey(Request $request): Request
     {
-        return \base64_encode(\hash_hmac('sha256', $token, $this->secret, true));
+        \parse_str($request->getQueryString(), $params);
+
+        unset($params[self::SIGNATURE_KEY]);
+
+        $request->server->set('QUERY_STRING', \http_build_query($params));
+
+        return $request;
     }
 
-    private function isSignatureValid(Request $request): bool
+    private static function isSignatureValid(UriSigner $uriSigner, Request $request): bool
     {
-        if (\method_exists($this->uriSigner, 'checkRequest')) {
-            return $this->uriSigner->checkRequest($request);
+        if (\method_exists($uriSigner, 'checkRequest')) {
+            return $uriSigner->checkRequest($request);
         }
 
         // compatibility layer for symfony/http-kernel < 5.1.
         $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
 
         // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
-        return $this->uriSigner->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
+        return $uriSigner->check($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
+    }
+
+    private static function singleUseSigner(string $token): UriSigner
+    {
+        return new UriSigner($token, self::SINGLE_USE_TOKEN_KEY);
     }
 }
