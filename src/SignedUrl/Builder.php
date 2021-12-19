@@ -13,7 +13,7 @@ final class Builder
     private string $route;
     private array $parameters;
     private int $referenceType;
-    private ?\DateTimeInterface $expiresAt = null;
+    private ?\DateTimeImmutable $expiresAt = null;
     private ?string $singleUseToken = null;
 
     /**
@@ -40,11 +40,15 @@ final class Builder
     public function expires($when): self
     {
         if (\is_numeric($when)) {
-            $when = \DateTime::createFromFormat('U', \time() + $when);
+            $when = \DateTimeImmutable::createFromFormat('U', \time() + $when);
         }
 
         if (\is_string($when)) {
-            $when = new \DateTime($when);
+            $when = new \DateTimeImmutable($when);
+        }
+
+        if ($when instanceof \DateTime) {
+            $when = \DateTimeImmutable::createFromMutable($when);
         }
 
         if (!$when instanceof \DateTimeInterface) {

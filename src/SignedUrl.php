@@ -8,13 +8,13 @@ namespace Zenstruck;
 final class SignedUrl
 {
     private string $url;
-    private ?\DateTimeInterface $expiresAt;
+    private ?\DateTimeImmutable $expiresAt;
     private bool $singleUse;
 
     /**
      * @internal
      */
-    public function __construct(string $url, ?\DateTimeInterface $expiresAt, bool $singleUse)
+    public function __construct(string $url, ?\DateTimeImmutable $expiresAt, bool $singleUse)
     {
         $this->url = $url;
         $this->expiresAt = $expiresAt;
@@ -26,7 +26,7 @@ final class SignedUrl
         return $this->url;
     }
 
-    public function expiresAt(): ?\DateTimeInterface
+    public function expiresAt(): ?\DateTimeImmutable
     {
         return $this->expiresAt;
     }

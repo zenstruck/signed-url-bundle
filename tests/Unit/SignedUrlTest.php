@@ -30,7 +30,7 @@ final class SignedUrlTest extends UnitTestCase
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue($url->isTemporary());
-        $this->assertSame($expected, $url->expiresAt());
+        $this->assertSame($expected->getTimestamp(), $url->expiresAt()->getTimestamp());
         $this->assertFalse($url->isSingleUse());
     }
 
@@ -57,7 +57,7 @@ final class SignedUrlTest extends UnitTestCase
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue($url->isTemporary());
-        $this->assertSame($expected, $url->expiresAt());
+        $this->assertSame($expected->getTimestamp(), $url->expiresAt()->getTimestamp());
         $this->assertTrue($url->isSingleUse());
     }
 }
