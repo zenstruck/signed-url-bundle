@@ -17,8 +17,8 @@ use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
  */
 final class Signer
 {
-    public const EXPIRES_AT_KEY = '_expires';
     public const SINGLE_USE_TOKEN_KEY = '_token';
+    private const EXPIRES_AT_KEY = '_expires';
 
     private UriSigner $uriSigner;
     private UrlGeneratorInterface $router;
@@ -30,8 +30,12 @@ final class Signer
         $this->router = $router;
     }
 
-    public function sign(string $route, array $parameters, int $referenceType): string
+    public function sign(string $route, array $parameters, int $referenceType, ?\DateTimeInterface $expiresAt): string
     {
+        if ($expiresAt) {
+            $parameters[self::EXPIRES_AT_KEY] = $expiresAt->getTimestamp();
+        }
+
         return $this->uriSigner->sign($this->router->generate($route, $parameters, $referenceType));
     }
 

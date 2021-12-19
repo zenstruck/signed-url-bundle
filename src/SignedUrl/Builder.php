@@ -51,7 +51,6 @@ final class Builder
         }
 
         $this->expiresAt = $when;
-        $this->parameters[Signer::EXPIRES_AT_KEY] = $this->expiresAt->getTimestamp();
 
         return $this;
     }
@@ -66,7 +65,7 @@ final class Builder
     public function create(): SignedUrl
     {
         return new SignedUrl(
-            $this->signer->sign($this->route, $this->parameters, $this->referenceType),
+            $this->signer->sign($this->route, $this->parameters, $this->referenceType, $this->expiresAt),
             $this->expiresAt,
             isset($this->parameters[Signer::SINGLE_USE_TOKEN_KEY])
         );
