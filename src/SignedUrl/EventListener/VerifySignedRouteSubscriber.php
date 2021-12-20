@@ -7,7 +7,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
-use Zenstruck\SignedUrl\Exception\InvalidUrlSignature;
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
 use Zenstruck\SignedUrl\Verifier;
 
 /**
@@ -34,7 +34,7 @@ final class VerifySignedRouteSubscriber implements EventSubscriberInterface, Ser
 
         try {
             $this->container->get(Verifier::class)->verify($request);
-        } catch (InvalidUrlSignature $e) {
+        } catch (UrlVerificationFailed $e) {
             throw new HttpException(\is_int($check) ? $check : 403, $e->messageKey(), $e);
         }
     }

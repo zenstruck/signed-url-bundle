@@ -5,10 +5,9 @@ namespace Zenstruck\SignedUrl;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Zenstruck\SignedUrl\Exception\ExpiredUrl;
-use Zenstruck\SignedUrl\Exception\SingleUseUrlMismatch;
 use Zenstruck\SignedUrl\Exception\UrlAlreadyUsed;
-use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
+use Zenstruck\SignedUrl\Exception\UrlHasExpired;
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -50,13 +49,13 @@ final class Signer
         $url = $request->getUri();
 
         if (!self::isSignatureValid($this->uriSigner, $request)) {
-            throw new UrlSignatureMismatch($url);
+            throw new UrlVerificationFailed($url, 'URL missing signature or could not be verified.');
         }
 
         $expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY);
 
         if ($expiresAt && \time() > $expiresAt) {
-            throw new ExpiredUrl(\DateTimeImmutable::createFromFormat('U', $expiresAt), $url);
+            throw new UrlHasExpired(\DateTimeImmutable::createFromFormat('U', $expiresAt), $url, 'URL has expired.');
         }
 
         $singleUseHash = $request->query->get(self::SINGLE_USE_TOKEN_KEY);
@@ -66,15 +65,15 @@ final class Signer
         }
 
         if ($singleUseHash && !$singleUseToken) {
-            throw new SingleUseUrlMismatch($url, 'Given url is single use but this was not expected.');
+            throw new UrlVerificationFailed($url, 'Given URL is single use but this was not expected.');
         }
 
         if (!$singleUseHash && $singleUseToken) {
-            throw new SingleUseUrlMismatch($url, 'Expected single user url.');
+            throw new UrlVerificationFailed($url, 'Expected single user url.');
         }
 
         if (!self::isSignatureValid(self::singleUseSigner($singleUseToken), self::removeSignatureKey($request))) {
-            throw new UrlAlreadyUsed($url);
+            throw new UrlAlreadyUsed($url, 'URL has already been used.');
         }
     }
 

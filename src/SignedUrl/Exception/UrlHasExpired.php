@@ -5,11 +5,11 @@ namespace Zenstruck\SignedUrl\Exception;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class ExpiredUrl extends InvalidUrlSignature
+final class UrlHasExpired extends UrlVerificationFailed
 {
     private \DateTimeImmutable $expiredAt;
 
-    public function __construct(\DateTimeImmutable $expiredAt, string $url, $message = 'URL is expired.')
+    public function __construct(\DateTimeImmutable $expiredAt, string $url, string $message)
     {
         $this->expiredAt = $expiredAt;
 
@@ -23,6 +23,6 @@ final class ExpiredUrl extends InvalidUrlSignature
 
     public function messageKey(): string
     {
-        return 'URL is expired.';
+        return 'URL has expired.';
     }
 }

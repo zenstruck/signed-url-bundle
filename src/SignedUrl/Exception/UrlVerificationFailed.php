@@ -5,11 +5,11 @@ namespace Zenstruck\SignedUrl\Exception;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-abstract class InvalidUrlSignature extends \RuntimeException
+class UrlVerificationFailed extends \RuntimeException
 {
     private string $url;
 
-    public function __construct(string $url, $message = 'Invalid URL Signature.')
+    public function __construct(string $url, string $message)
     {
         parent::__construct($message);
 
@@ -22,10 +22,11 @@ abstract class InvalidUrlSignature extends \RuntimeException
     }
 
     /**
-     * Unchanging message key for translations.
+     * User-friendly/safe reason. This return value must not change (per exception class)
+     * so it can be used for translations.
      */
     public function messageKey(): string
     {
-        return 'Invalid URL Signature.';
+        return 'URL Verification failed.';
     }
 }

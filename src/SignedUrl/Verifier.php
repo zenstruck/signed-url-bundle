@@ -4,10 +4,9 @@ namespace Zenstruck\SignedUrl;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Zenstruck\SignedUrl\Exception\ExpiredUrl;
-use Zenstruck\SignedUrl\Exception\InvalidUrlSignature;
 use Zenstruck\SignedUrl\Exception\UrlAlreadyUsed;
-use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
+use Zenstruck\SignedUrl\Exception\UrlHasExpired;
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -26,9 +25,9 @@ final class Verifier
     /**
      * @param string|Request $url
      *
-     * @throws UrlSignatureMismatch If the signed url cannot be verified
-     * @throws ExpiredUrl           If the signed url is valid but expired
-     * @throws UrlAlreadyUsed       If the url is single use and has already been used
+     * @throws UrlHasExpired         If the signed url is valid but expired
+     * @throws UrlAlreadyUsed        If the url is single use and has already been used
+     * @throws UrlVerificationFailed If the url fails verification
      */
     public function verify($url, ?string $singleUseToken = null): void
     {
@@ -38,10 +37,10 @@ final class Verifier
     /**
      * Attempt to verify the current request.
      *
-     * @throws \RuntimeException    If no current request available
-     * @throws UrlSignatureMismatch If the current request cannot be verified
-     * @throws ExpiredUrl           If the current request is valid but expired
-     * @throws UrlAlreadyUsed       If the current request is single use and has already been used
+     * @throws \RuntimeException     If no current request available
+     * @throws UrlHasExpired         If the signed url is valid but expired
+     * @throws UrlAlreadyUsed        If the url is single use and has already been used
+     * @throws UrlVerificationFailed If the url fails verification
      */
     public function verifyCurrentRequest(?string $singleUseToken = null): void
     {
@@ -61,7 +60,7 @@ final class Verifier
     {
         try {
             $this->verify($url, $singleUseToken);
-        } catch (InvalidUrlSignature $e) {
+        } catch (UrlVerificationFailed $e) {
             return false;
         }
 
@@ -77,7 +76,7 @@ final class Verifier
     {
         try {
             $this->verifyCurrentRequest($singleUseToken);
-        } catch (InvalidUrlSignature $e) {
+        } catch (UrlVerificationFailed $e) {
             return false;
         }
 

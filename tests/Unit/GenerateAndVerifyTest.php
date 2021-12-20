@@ -4,10 +4,9 @@ namespace Zenstruck\SignedUrl\Tests\Unit;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Zenstruck\SignedUrl\Exception\ExpiredUrl;
-use Zenstruck\SignedUrl\Exception\SingleUseUrlMismatch;
 use Zenstruck\SignedUrl\Exception\UrlAlreadyUsed;
-use Zenstruck\SignedUrl\Exception\UrlSignatureMismatch;
+use Zenstruck\SignedUrl\Exception\UrlHasExpired;
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -39,8 +38,9 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         try {
             $verifier->verify($url);
-        } catch (UrlSignatureMismatch $e) {
+        } catch (UrlVerificationFailed $e) {
             $this->assertSame($url, $e->url());
+            $this->assertSame('URL Verification failed.', $e->messageKey());
 
             return;
         }
@@ -74,8 +74,9 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         try {
             self::verifier()->verify($url);
-        } catch (ExpiredUrl $e) {
+        } catch (UrlHasExpired $e) {
             $this->assertSame($url, $e->url());
+            $this->assertSame('URL has expired.', $e->messageKey());
 
             // TODO the following is brittle
             $this->assertContains($expected->getTimestamp(), [
@@ -105,9 +106,15 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $this->assertFalse($verifier->isVerified($url));
 
-        $this->expectException(UrlSignatureMismatch::class);
+        try {
+            $verifier->verify($url);
+        } catch (UrlVerificationFailed $e) {
+            $this->assertSame(UrlVerificationFailed::class, \get_class($e));
 
-        $verifier->verify($url);
+            return;
+        }
+
+        $this->fail('Exception not thrown.');
     }
 
     /**
@@ -154,7 +161,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $this->assertFalse($verifier->isCurrentRequestVerified());
 
-        $this->expectException(UrlSignatureMismatch::class);
+        $this->expectException(UrlVerificationFailed::class);
 
         $verifier->verifyCurrentRequest();
     }
@@ -173,7 +180,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $this->assertFalse($verifier->isCurrentRequestVerified());
 
-        $this->expectException(ExpiredUrl::class);
+        $this->expectException(UrlHasExpired::class);
 
         $verifier->verifyCurrentRequest();
     }
@@ -278,7 +285,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $this->assertFalse($verifier->isVerified($url, 'token'));
 
-        $this->expectException(SingleUseUrlMismatch::class);
+        $this->expectException(UrlVerificationFailed::class);
         $this->expectExceptionMessage('Expected single user url.');
 
         $verifier->verify($url, 'token');
@@ -294,8 +301,8 @@ final class GenerateAndVerifyTest extends UnitTestCase
 
         $this->assertFalse($verifier->isVerified($url));
 
-        $this->expectException(SingleUseUrlMismatch::class);
-        $this->expectExceptionMessage('Given url is single use but this was not expected.');
+        $this->expectException(UrlVerificationFailed::class);
+        $this->expectExceptionMessage('Given URL is single use but this was not expected.');
 
         $verifier->verify($url);
     }
@@ -320,9 +327,15 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $url = self::generator('secret1')->builder('route1')->expires('yesterday')->singleUse('token1');
 
-        $this->expectException(UrlSignatureMismatch::class);
+        try {
+            self::verifier('secret2')->verify($url, 'token2');
+        } catch (UrlVerificationFailed $e) {
+            $this->assertSame(UrlVerificationFailed::class, \get_class($e));
 
-        self::verifier('secret2')->verify($url, 'token2');
+            return;
+        }
+
+        $this->fail('Exception not thrown.');
     }
 
     /**
@@ -332,7 +345,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $url = self::generator()->builder('route1')->expires('yesterday')->singleUse('token1');
 
-        $this->expectException(ExpiredUrl::class);
+        $this->expectException(UrlHasExpired::class);
 
         self::verifier()->verify($url, 'token2');
     }
