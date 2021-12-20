@@ -15,6 +15,6 @@ final class BuilderTest extends UnitTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('stdClass is not a valid expires at.');
 
-        self::generator()->builder('foo')->expires(new \stdClass());
+        self::generator()->build('foo')->expires(new \stdClass());
     }
 }

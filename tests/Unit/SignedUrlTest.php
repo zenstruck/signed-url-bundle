@@ -12,7 +12,7 @@ final class SignedUrlTest extends UnitTestCase
      */
     public function simple(): void
     {
-        $url = self::generator()->builder('route1')->create();
+        $url = self::generator()->build('route1')->create();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=.+$#', $url);
         $this->assertFalse($url->isTemporary());
@@ -26,7 +26,7 @@ final class SignedUrlTest extends UnitTestCase
     public function temporary(): void
     {
         $expected = new \DateTime('tomorrow');
-        $url = self::generator()->builder('route1')->expires($expected)->create();
+        $url = self::generator()->build('route1')->expires($expected)->create();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue($url->isTemporary());
@@ -39,7 +39,7 @@ final class SignedUrlTest extends UnitTestCase
      */
     public function single_use(): void
     {
-        $url = self::generator()->builder('route1')->singleUse('token1')->create();
+        $url = self::generator()->build('route1')->singleUse('token1')->create();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertFalse($url->isTemporary());
@@ -53,7 +53,7 @@ final class SignedUrlTest extends UnitTestCase
     public function full_featured(): void
     {
         $expected = new \DateTime('tomorrow');
-        $url = self::generator()->builder('route1')->expires($expected)->singleUse('token1')->create();
+        $url = self::generator()->build('route1')->expires($expected)->singleUse('token1')->create();
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue($url->isTemporary());

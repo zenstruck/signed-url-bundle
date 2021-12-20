@@ -19,7 +19,7 @@ final class Generator implements UrlGeneratorInterface
 
     public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_URL): string
     {
-        return $this->builder($name, $parameters, $referenceType);
+        return $this->build($name, $parameters, $referenceType);
     }
 
     /**
@@ -29,19 +29,19 @@ final class Generator implements UrlGeneratorInterface
      */
     public function temporary($expiresAt, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
     {
-        return $this->builder($route, $parameters, $referenceType)
+        return $this->build($route, $parameters, $referenceType)
             ->expires($expiresAt)
         ;
     }
 
     public function singleUse(string $token, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
     {
-        return $this->builder($route, $parameters, $referenceType)
+        return $this->build($route, $parameters, $referenceType)
             ->singleUse($token)
         ;
     }
 
-    public function builder(string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): Builder
+    public function build(string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): Builder
     {
         return new Builder($this->signer, $route, $parameters, $referenceType);
     }

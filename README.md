@@ -10,7 +10,7 @@ use cases include:
 ```php
 public function sendPasswordResetEmail(User $user, Generator $generator)
 {
-    $resetUrl = $generator->builder('password_reset_route')
+    $resetUrl = $generator->build('password_reset_route')
         ->expires('+1 day')
         ->singleUse($user->getPassword())
     ;
@@ -95,7 +95,7 @@ $generator->temporary(new \DateTime('+1 hour'), 'route1');
 These urls are generated with a token that should change once the url has been used. It is up to you
 to determine this token and depends on the context. A good example is a password reset. For these
 urls, the token would be the current user's password. Once they successfully change their password
-the token wouldn't match so the url would be invalid.
+the token wouldn't match so the url would become invalid.
 
 **NOTE**: The URL is first hashed with this token, then hashed again with the app-level secret
 to ensure it hasn't been tampered with.
@@ -113,7 +113,7 @@ You can create a signed, temporary, single-use URL using `Generator::build()`.
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
 
-(string) $generator->builder('reset_password', ['id' => $user->getId()])
+(string) $generator->build('reset_password', ['id' => $user->getId()])
     ->expires('+1 hour')
     ->singleUse($user->getPassword())
 ;
@@ -121,13 +121,13 @@ You can create a signed, temporary, single-use URL using `Generator::build()`.
 
 ### `SignedUrl` Object
 
-`Generator::build()` creates a signed URL builder, calling `create()` returns a `SignedUrl` object
-with context for the url:
+`Generator::build()` creates a signed URL builder, calling `create()` on this returns
+a `SignedUrl` object with context for the url:
 
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
 
-$signedUrl = $generator->builder('reset_password', ['id' => $user->getId()])
+$signedUrl = $generator->build('reset_password', ['id' => $user->getId()])
     ->expires('+1 hour')
     ->singleUse($user->getPassword())
     ->create()
@@ -149,7 +149,7 @@ The `Zenstruck\SignedUrl\Verifier` is an auto-wireable service that is used to v
 /** @var string $url */
 /** @var Symfony\Component\HttpFoundation\Request $request */
 
-// simple usage: return true is valid and non-expired (if applicable), false otherwise
+// simple usage: return true if valid and non-expired (if applicable), false otherwise
 $verifier->isVerified($url);
 $verifier->isVerified($request); // can pass Symfony request object
 $verifier->isCurrentRequestVerified(); // verifies the current request (fetched from RequestStack)
@@ -198,7 +198,7 @@ try {
     $verifier->verify($request, $user->getPassword()); // alternative
     $verifier->verifyCurrentRequest($user->getPassword()); // alternative
 } catch (\Zenstruck\SignedUrl\Exception\UrlVerificationFailed $e) {
-    $e->messageKey(); // "URL has already been used." (if failed because already used)
+    $e->messageKey(); // "URL has already been used." (if failed for this reason)
 }
 ```
 
@@ -206,7 +206,7 @@ try {
 
 The single-use token is required for both generating and verifying the url. These are likely
 done in different parts of your application. To avoid duplicating the generation of your
-token, it is recommended to wrap the logic up into simple *token objects* that are `\Stringable`:
+token, it is recommended to wrap the logic into simple *token objects* that are `\Stringable`:
 
 ```php
 final class ResetPasswordToken
@@ -247,7 +247,7 @@ an `HttpException` (`403` by default) on failure. You do not have the option
 to intercept and provide a friendly message to the user. Additionally, single-use
 URL verification is not possible.
 
-This features needs to be enabled:
+This feature needs to be enabled:
 
 ```yaml
 # config/packages/zenstruck_signed_url.yaml
@@ -311,7 +311,7 @@ _used_ when the password changes:
 /** @var \Zenstruck\SignedUrl\Verifier $verifier */
 
 // REQUEST PASSWORD RESET ACTION (GENERATE URL)
-$url = $generator->builder('reset_password', ['id' => $user->getId()])
+$url = $generator->build('reset_password', ['id' => $user->getId()])
     ->expires('+1 day')
     ->singleUse($user->getPassword())
     ->create()
@@ -353,7 +353,7 @@ final class VerifyToken
 /** @var \Zenstruck\SignedUrl\Verifier $verifier */
 
 // REGISTRATION CONTROLLER ACTION (GENERATE URL)
-$url = $generator->builder('verify_user', ['id' => $user->getId()])
+$url = $generator->build('verify_user', ['id' => $user->getId()])
     ->singleUse(new VerifyToken($user))
     ->create()
 ;
@@ -379,7 +379,7 @@ $user->verify(); // marks the user as verified and invalidates the URL
 If your app requires all users have a verified email, a system to allow users
 to _change_ their email requires verification as well. You can use this bundle
 to enable this in a stateless way. First, when a user requests an email change,
-send link to the _new_ email. This link includes the _new_ email within it so when
+send a link to the _new_ email. This link includes the _new_ email within it so when
 they click it, the app knows the new _verified_ email to set.
 
 ```php
@@ -387,7 +387,7 @@ they click it, the app knows the new _verified_ email to set.
 /** @var \Zenstruck\SignedUrl\Verifier $verifier */
 
 // REQUEST EMAIL CHANGE ACTION (GENERATE URL)
-$url = $generator->builder('reset_password', ['id' => $user->getId(), 'new-email' => $newEmailRequested])
+$url = $generator->build('reset_password', ['id' => $user->getId(), 'new-email' => $newEmailRequested])
     ->expires('+1 day')
     ->singleUse($user->getEmail()) // the user's current email
     ->create()
