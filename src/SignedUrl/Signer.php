@@ -30,7 +30,7 @@ final class Signer
         $this->router = $router;
     }
 
-    public function sign(string $route, array $parameters, int $referenceType, ?\DateTimeInterface $expiresAt, ?string $singleUseToken): string
+    public function sign(string $route, array $parameters, int $referenceType, ?\DateTimeImmutable $expiresAt, ?string $singleUseToken): string
     {
         if ($expiresAt) {
             $parameters[self::EXPIRES_AT_KEY] = $expiresAt->getTimestamp();
@@ -56,7 +56,7 @@ final class Signer
         $expiresAt = $request->query->getInt(self::EXPIRES_AT_KEY);
 
         if ($expiresAt && \time() > $expiresAt) {
-            throw new ExpiredUrl(\DateTime::createFromFormat('U', $expiresAt), $url);
+            throw new ExpiredUrl(\DateTimeImmutable::createFromFormat('U', $expiresAt), $url);
         }
 
         $singleUseHash = $request->query->get(self::SINGLE_USE_TOKEN_KEY);

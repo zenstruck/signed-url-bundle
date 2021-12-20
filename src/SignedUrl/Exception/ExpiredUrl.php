@@ -7,16 +7,16 @@ namespace Zenstruck\SignedUrl\Exception;
  */
 final class ExpiredUrl extends InvalidUrlSignature
 {
-    private \DateTimeInterface $expiredAt;
+    private \DateTimeImmutable $expiredAt;
 
-    public function __construct(\DateTimeInterface $expiredAt, string $url, $message = 'URL is expired.')
+    public function __construct(\DateTimeImmutable $expiredAt, string $url, $message = 'URL is expired.')
     {
         $this->expiredAt = $expiredAt;
 
         parent::__construct($url, $message);
     }
 
-    public function expiredAt(): \DateTimeInterface
+    public function expiredAt(): \DateTimeImmutable
     {
         return $this->expiredAt;
     }
