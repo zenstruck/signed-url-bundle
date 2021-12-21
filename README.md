@@ -8,9 +8,11 @@ use cases include:
 - [Stateless Verified Change Email](#stateless-verified-change-email)
 
 ```php
+use Zenstruck\SignedUrl\Generator;
+
 public function sendPasswordResetEmail(User $user, Generator $generator)
 {
-    $resetUrl = $generator->build('password_reset_route')
+    $resetUrl = $generator->build('password_reset_route', ['id' => $user->getId()])
         ->expires('+1 day')
         ->singleUse($user->getPassword())
     ;
@@ -20,16 +22,17 @@ public function sendPasswordResetEmail(User $user, Generator $generator)
 ```
 
 ```php
+use Zenstruck\SignedUrl\Verifier;
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
+
 public function resetPasswordAction(User $user, Verifier $urlVerifier)
 {
     try {
         $urlVerifier->verifyCurrentRequest(singleUseToken: $user->getPassword());
-    } catch (UrlHasExpired) {
-        // flash "This url has expired, please try again" and redirect
-    } catch (UrlAlreadyUsed) {
-        // flash "This url has already been used, please try again" and redirect
-    } catch (UrlVerificationFailed) {
-        // flash "This url is invalid, please try again" and redirect
+    } catch (UrlVerificationFailed $e) {
+        $this->flashError($e->messageKey()); // safe reason to show user
+
+        return $this->redirect(...);
     }
 
     // continue
@@ -145,6 +148,8 @@ $signedUrl->isSingleUse(); // true
 The `Zenstruck\SignedUrl\Verifier` is an auto-wireable service that is used to verify signed urls.
 
 ```php
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
+
 /** @var Zenstruck\SignedUrl\Verifier $verifier */
 /** @var string $url */
 /** @var Symfony\Component\HttpFoundation\Request $request */
@@ -159,24 +164,15 @@ try {
     $verifier->verify($url);
     $verifier->verify($request); // alternative
     $verifier->verifyCurrentRequest(); // alternative
-} catch (\Zenstruck\SignedUrl\Exception\UrlVerificationFailed $e) {
+} catch (UrlVerificationFailed $e) {
     $e->url(); // the url used
     $e->getMessage(); // Internal message (ie for logging)
     $e->messageKey(); // Safe message with reason to show the user (or use with translator)
 }
-
-// try/catch with expired url context:
-try {
-    $verifier->verify($url);
-    $verifier->verify($request); // alternative
-    $verifier->verifyCurrentRequest(); // alternative
-} catch (\Zenstruck\SignedUrl\Exception\UrlHasExpired $e) {
-    // this exception extends UrlVerificationFailed
-    $e->expiredAt(); // \DateTimeImmutable
-} catch (\Zenstruck\SignedUrl\Exception\UrlVerificationFailed $e) {
-    // catch all (must be last catch)
-}
 ```
+
+**NOTE:** See [Verification Exceptions](#verification-exceptions) for more information on
+the thrown exception.
 
 ### Single-Use Verification
 
@@ -184,6 +180,8 @@ For validating [single-use urls](#single-use-urls), you need to pass a token to 
 verify methods:
 
 ```php
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
+
 /** @var Zenstruck\SignedUrl\Verifier $verifier */
 /** @var string $url */
 /** @var Symfony\Component\HttpFoundation\Request $request */
@@ -197,7 +195,7 @@ try {
     $verifier->verify($url, $user->getPassword());
     $verifier->verify($request, $user->getPassword()); // alternative
     $verifier->verifyCurrentRequest($user->getPassword()); // alternative
-} catch (\Zenstruck\SignedUrl\Exception\UrlVerificationFailed $e) {
+} catch (UrlVerificationFailed $e) {
     $e->messageKey(); // "URL has already been used." (if failed for this reason)
 }
 ```
@@ -283,6 +281,40 @@ action1:
 action2:
     path: /action2
     options: { signed: 404 } # throw a 404 exception instead
+```
+
+### Verification Exceptions
+
+Verification can fail for the following reasons (in this order):
+1. Signature missing or invalid (URL has been tampered with).
+2. If the URL has an expiration and has expired.
+3. Single-use URL has been _used_.
+
+Each of the above reasons has a corresponding exception that can be caught separately
+(all exceptions are instances of `Zenstruck\SignedUrl\Exception\UrlVerificationFailed`):
+
+```php
+use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
+use Zenstruck\SignedUrl\Exception\UrlHasExpired;
+use Zenstruck\SignedUrl\Exception\UrlAlreadyUsed;
+
+/** @var Zenstruck\SignedUrl\Verifier $verifier */
+
+try {
+    $verifier->verifyCurrentRequest($user->getPassword());
+} catch (UrlHasExpired $e) {
+    // this exception makes the expiration available
+    $e->expiredAt(); // \DateTimeImmutable
+    $e->messageKey(); // "URL has expired."
+    $e->url(); // the URL that failed verification
+} catch (UrlAlreadyUsed $e) {
+    $e->messageKey(); // "URL has already been used."
+    $e->url(); // the URL that failed verification
+} catch (UrlVerificationFailed $e) {
+    // must be last as a "catch all"
+    $e->messageKey(); // "URL Verification failed."
+    $e->url(); // the URL that failed verification
+}
 ```
 
 ## Full Default Configuration
