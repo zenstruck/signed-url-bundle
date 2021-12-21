@@ -54,7 +54,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function can_generate_and_validate_temporary_url($expiresAt): void
     {
-        $url = self::generator()->temporary($expiresAt, 'route1');
+        $url = self::generator()->build('route1')->expires($expiresAt);
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_expires=\d+&_hash=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url));
@@ -68,7 +68,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function validation_fails_if_url_has_expired($expiresAt, \DateTime $expected): void
     {
-        $url = self::generator()->temporary($expiresAt, 'route1');
+        $url = (string) self::generator()->build('route1')->expires($expiresAt);
 
         $this->assertFalse(self::verifier()->isVerified($url));
 
@@ -101,7 +101,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function validation_fails_if_url_is_not_expired_but_signature_is_invalid($expiresAt): void
     {
-        $url = self::generator('secret1')->temporary($expiresAt, 'route1');
+        $url = self::generator('secret1')->build('route1')->expires($expiresAt);
         $verifier = self::verifier('secret2');
 
         $this->assertFalse($verifier->isVerified($url));
@@ -174,7 +174,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
         $generator = self::generator('1234');
 
         $stack = new RequestStack();
-        $stack->push(Request::create($generator->temporary('yesterday', 'route1')));
+        $stack->push(Request::create($generator->build('route1')->expires('yesterday')));
 
         $verifier = self::verifier('1234', $stack);
 

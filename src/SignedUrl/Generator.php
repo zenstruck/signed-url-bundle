@@ -22,18 +22,6 @@ final class Generator implements UrlGeneratorInterface
         return $this->build($name, $parameters, $referenceType);
     }
 
-    /**
-     * @param \DateTimeInterface|string|int $expiresAt \DateTimeInterface: the exact time the link should expire
-     *                                                 string: used to construct a datetime object (ie "+1 hour")
-     *                                                 int: # of seconds until the link expires
-     */
-    public function temporary($expiresAt, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
-    {
-        return $this->build($route, $parameters, $referenceType)
-            ->expires($expiresAt)
-        ;
-    }
-
     public function singleUse(string $token, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
     {
         return $this->build($route, $parameters, $referenceType)

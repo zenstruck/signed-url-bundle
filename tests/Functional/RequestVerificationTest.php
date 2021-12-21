@@ -25,7 +25,7 @@ final class RequestVerificationTest extends WebTestCase
 
         $this->assertSame('verified: yes', $client->getResponse()->getContent());
 
-        $client->request('GET', self::getContainer()->get(Generator::class)->temporary('tomorrow', 'route1'));
+        $client->request('GET', self::getContainer()->get(Generator::class)->build('route1')->expires('tomorrow'));
 
         $this->assertSame('verified: yes', $client->getResponse()->getContent());
     }
@@ -44,7 +44,7 @@ final class RequestVerificationTest extends WebTestCase
 
         $this->assertSame('verified: no', $client->getResponse()->getContent());
 
-        $client->request('GET', self::getContainer()->get(Generator::class)->temporary('yesterday', 'route1'));
+        $client->request('GET', self::getContainer()->get(Generator::class)->build('route1')->expires('yesterday'));
 
         $this->assertSame('verified: no', $client->getResponse()->getContent());
 

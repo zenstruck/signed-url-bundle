@@ -83,14 +83,14 @@ These urls expire (cannot be verified) after a certain time. They are also signe
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
 
-$generator->temporary('+1 hour', 'route1'); // http://example.com/route1?__expires=...&_hash=...
-$generator->temporary('+1 hour', 'route2', ['parameter1' => 'value']); // http://example.com/route2/value?__expires=...&_hash=...
+(string) $generator->build('route1')->expires('+1 hour'); // http://example.com/route1?__expires=...&_hash=...
+(string) $generator->build('route2', ['parameter1' => 'value'])->expires('+1 hour'); // http://example.com/route2/value?__expires=...&_hash=...
 
 // use # of seconds
-$generator->temporary(3600, 'route1');
+(string) $generator->build('route1')->expires(3600);
 
 // use an explicit \DateTime
-$generator->temporary(new \DateTime('+1 hour'), 'route1');
+(string) $generator->build('route1')->expires(new \DateTime('+1 hour'));
 ```
 
 ### Single-Use Urls
