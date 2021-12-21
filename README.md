@@ -69,11 +69,18 @@ for your Symfony routes. By default, all generated urls are absolute.
 
 ### Standard Signed Urls
 
-```php
-/** @var Zenstruck\SignedUrl\Generator $generator */
+`Generator` service is an instance of `Symfony\Component\Routing\Generator\UrlGeneratorInterface`.
+Calling `Generator::generate()` creates a _standard_ signed url (no expiration). These are
+absolute by default.
 
-(string) $generator->build('route1'); // http://example.com/route1?_hash=...
-(string) $generator->build('route2', ['parameter1' => 'value']); // http://example.com/route2/value?_hash=...
+```php
+use Zenstruck\SignedUrl\Generator;
+
+/** @var Generator $generator */
+
+$generator->generate('route1'); // http://example.com/route1?_hash=...
+$generator->generate('route2', ['parameter1' => 'value']); // http://example.com/route2/value?_hash=...
+$generator->generate('route3', [], Generator::ABSOLUTE_PATH); // /route2/value?_hash=...
 ```
 
 ### Temporary Urls
@@ -87,31 +94,16 @@ These urls expire (cannot be verified) after a certain time. They are also signe
 (string) $generator->build('route2', ['parameter1' => 'value'])->expires('+1 hour'); // http://example.com/route2/value?__expires=...&_hash=...
 
 // use # of seconds
-(string) $generator->build('route1')->expires(3600);
+(string) $generator->build('route1')->expires(3600); // http://example.com/route2/value?__expires=...&_hash=...
 
 // use an explicit \DateTime
-(string) $generator->build('route1')->expires(new \DateTime('+1 hour'));
-```
-
-### Single-Use Urls
-
-These urls are generated with a token that should change once the url has been used. It is up to you
-to determine this token and depends on the context. A good example is a password reset. For these
-urls, the token would be the current user's password. Once they successfully change their password
-the token wouldn't match so the url would become invalid.
-
-**NOTE**: The URL is first hashed with this token, then hashed again with the app-level secret
-to ensure it hasn't been tampered with.
-
-```php
-/** @var Zenstruck\SignedUrl\Generator $generator */
-
-$generator->build('reset_password', ['id' => $user->getId()])->singleUse($user->getPassword());
+(string) $generator->build('route1')->expires(new \DateTime('+1 hour')); // http://example.com/route2/value?__expires=...&_hash=...
 ```
 
 ### Combination Urls
 
-You can create a signed, temporary, single-use URL using `Generator::build()`.
+You can create a [signed](#standard-signed-urls), [temporary](#temporary-urls),
+[single-use](#single-use-urls) URL using `Generator::build()`.
 
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
@@ -174,6 +166,29 @@ try {
 **NOTE:** See [Verification Exceptions](#verification-exceptions) for more information on
 the thrown exception.
 
+## Single-Use Urls
+
+These urls are generated with a token that should change once the url has been used. **It is up to you
+to determine this token and depends on the context.**
+
+A good example is a password reset. For these urls, the token would be the current user's password.
+Once they successfully change their password the token wouldn't match so the url would become invalid.
+
+**NOTE**: The URL is first hashed with this token, then hashed again with the app-level secret
+to ensure it hasn't been tampered with.
+
+```php
+/** @var Zenstruck\SignedUrl\Generator $generator */
+
+// !! This will be the single-use token that changes once "used" !!
+$password = $user->getPassword();
+
+$url = $generator->build('reset_password', ['id' => $user->getId()])
+    ->singleUse($password)
+    ->create()
+;
+```
+
 ### Single-Use Verification
 
 For validating [single-use urls](#single-use-urls), you need to pass a token to the Verifier's
@@ -186,21 +201,24 @@ use Zenstruck\SignedUrl\Exception\UrlVerificationFailed;
 /** @var string $url */
 /** @var Symfony\Component\HttpFoundation\Request $request */
 
-$verifier->isVerified($url, $user->getPassword());
-$verifier->isVerified($request, $user->getPassword());
-$verifier->isCurrentRequestVerified($user->getPassword());
+// !! This is the single-use token. If the url was generated with a different password verification will fail !!
+$password = $user->getPassword();
+
+$verifier->isVerified($url, $password);
+$verifier->isVerified($request, $password);
+$verifier->isCurrentRequestVerified($password);
 
 // try/catch usage: catch exceptions to provide better feedback to users
 try {
-    $verifier->verify($url, $user->getPassword());
-    $verifier->verify($request, $user->getPassword()); // alternative
-    $verifier->verifyCurrentRequest($user->getPassword()); // alternative
+    $verifier->verify($url, $password);
+    $verifier->verify($request, $password); // alternative
+    $verifier->verifyCurrentRequest($password); // alternative
 } catch (UrlVerificationFailed $e) {
     $e->messageKey(); // "URL has already been used." (if failed for this reason)
 }
 ```
 
-#### Token Objects
+### Token Objects
 
 The single-use token is required for both generating and verifying the url. These are likely
 done in different parts of your application. To avoid duplicating the generation of your
@@ -237,7 +255,7 @@ $verifier->isCurrentRequestVerified(new ResetPasswordToken($user));
 $verifier->verifyCurrentRequest(new ResetPasswordToken($user));
 ```
 
-### Auto-Verify Routes
+## Auto-Verify Routes
 
 You can auto-verify specific routes using a routing option or attribute. Before
 these controllers are called, an event listener verifies the route and throws
@@ -283,7 +301,7 @@ action2:
     options: { signed: 404 } # throw a 404 exception instead
 ```
 
-### Verification Exceptions
+## Verification Exceptions
 
 Verification can fail for the following reasons (in this order):
 1. Signature missing or invalid (URL has been tampered with).
@@ -345,7 +363,7 @@ _used_ when the password changes:
 // REQUEST PASSWORD RESET ACTION (GENERATE URL)
 $url = $generator->build('reset_password', ['id' => $user->getId()])
     ->expires('+1 day')
-    ->singleUse($user->getPassword())
+    ->singleUse($user->getPassword()) // current password is the token that changes once "used"
     ->create()
 ;
 
@@ -353,7 +371,7 @@ $url = $generator->build('reset_password', ['id' => $user->getId()])
 
 // PASSWORD RESET ACTION (VERIFY URL)
 try {
-    $verifier->verifyCurrentRequest($user->getPassword());
+    $verifier->verifyCurrentRequest($user->getPassword()); // current password as the token
 } catch (\Zenstruck\SignedUrl\Exception\UrlVerificationFailed $e) {
     $this->flashError($e->messageKey());
 
@@ -386,7 +404,7 @@ final class VerifyToken
 
 // REGISTRATION CONTROLLER ACTION (GENERATE URL)
 $url = $generator->build('verify_user', ['id' => $user->getId()])
-    ->singleUse(new VerifyToken($user))
+    ->singleUse(new VerifyToken($user)) // this token's value will be "unverified"
     ->create()
 ;
 
@@ -394,7 +412,7 @@ $url = $generator->build('verify_user', ['id' => $user->getId()])
 
 // VERIFICATION ACTION (VERIFY URL)
 try {
-    $verifier->verifyCurrentRequest(new VerifyToken($user));
+    $verifier->verifyCurrentRequest(new VerifyToken($user)); // this token's value should be "unverified" but if not, it is invalid
 } catch (\Zenstruck\SignedUrl\Exception\UrlVerificationFailed $e) {
     $this->flashError($e->messageKey());
 
