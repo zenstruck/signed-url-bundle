@@ -193,7 +193,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
         $generator = self::generator('1234');
 
         $stack = new RequestStack();
-        $stack->push(Request::create($generator->singleUse('token1', 'route1')));
+        $stack->push(Request::create($generator->build('route1')->singleUse('token1')));
 
         $verifier = self::verifier('1234', $stack);
 
@@ -211,7 +211,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $token = '1234';
 
-        $url = self::generator()->singleUse($token, 'route1');
+        $url = self::generator()->build('route1')->singleUse($token);
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url, $token));
@@ -226,7 +226,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
     {
         $token = '1234';
 
-        $url = self::generator()->singleUse($token, 'route1', ['foo' => 'bar']);
+        $url = self::generator()->build('route1', ['foo' => 'bar'])->singleUse($token);
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+foo=bar$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url, $token));
@@ -246,7 +246,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
             }
         };
 
-        $url = self::generator()->singleUse($token, 'route1');
+        $url = self::generator()->build('route1')->singleUse($token);
 
         $this->assertMatchesRegularExpression('#^http://localhost/route1\?_hash=[\w\%]+&_token=.+$#', $url);
         $this->assertTrue(self::verifier()->isVerified($url, $token));
@@ -259,7 +259,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_verification_fails_on_token_mismatch(): void
     {
-        $url = self::generator()->singleUse('token1', 'route1');
+        $url = (string) self::generator()->build('route1')->singleUse('token1');
         $verifier = self::verifier();
 
         $this->assertFalse($verifier->isVerified($url, 'token2'));
@@ -296,7 +296,7 @@ final class GenerateAndVerifyTest extends UnitTestCase
      */
     public function single_use_verification_if_url_single_use_but_no_token_passed(): void
     {
-        $url = self::generator()->singleUse('token', 'route1');
+        $url = self::generator()->build('route1')->singleUse('token');
         $verifier = self::verifier();
 
         $this->assertFalse($verifier->isVerified($url));

@@ -48,7 +48,7 @@ final class RequestVerificationTest extends WebTestCase
 
         $this->assertSame('verified: no', $client->getResponse()->getContent());
 
-        $client->request('GET', self::getContainer()->get(Generator::class)->singleUse('token', 'route1'));
+        $client->request('GET', self::getContainer()->get(Generator::class)->build('route1')->singleUse('token'));
 
         $this->assertSame('verified: no', $client->getResponse()->getContent());
     }

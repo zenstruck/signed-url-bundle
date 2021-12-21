@@ -22,13 +22,6 @@ final class Generator implements UrlGeneratorInterface
         return $this->build($name, $parameters, $referenceType);
     }
 
-    public function singleUse(string $token, string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): string
-    {
-        return $this->build($route, $parameters, $referenceType)
-            ->singleUse($token)
-        ;
-    }
-
     public function build(string $route, array $parameters = [], int $referenceType = self::ABSOLUTE_URL): Builder
     {
         return new Builder($this->signer, $route, $parameters, $referenceType);

@@ -72,8 +72,8 @@ for your Symfony routes. By default, all generated urls are absolute.
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
 
-$generator->generate('route1'); // http://example.com/route1?_hash=...
-$generator->generate('route2', ['parameter1' => 'value']); // http://example.com/route2/value?_hash=...
+(string) $generator->build('route1'); // http://example.com/route1?_hash=...
+(string) $generator->build('route2', ['parameter1' => 'value']); // http://example.com/route2/value?_hash=...
 ```
 
 ### Temporary Urls
@@ -106,7 +106,7 @@ to ensure it hasn't been tampered with.
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
 
-$generator->singleUse($user->getPassword(), 'reset_password', ['id' => $user->getId()]);
+$generator->build('reset_password', ['id' => $user->getId()])->singleUse($user->getPassword());
 ```
 
 ### Combination Urls
@@ -223,7 +223,7 @@ Generate the url using this token object:
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
 
-$generator->singleUse(new ResetPasswordToken($user), 'reset_password', ['id' => $user->getId()]);
+$generator->build('reset_password', ['id' => $user->getId()])->singleUse(new ResetPasswordToken($user));
 ```
 
 When verifying, use the token object here as well:
