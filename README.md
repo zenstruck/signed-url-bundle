@@ -1,5 +1,8 @@
 # zenstruck/signed-url-bundle
 
+[![CI Status](https://github.com/zenstruck/signed-url-bundle/workflows/CI/badge.svg)](https://github.com/zenstruck/signed-url-bundle/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/zenstruck/signed-url-bundle/branch/1.x/graph/badge.svg?token=8MIYZSQN6Z)](https://codecov.io/gh/zenstruck/signed-url-bundle)
+
 Helpers for signing and verifying urls with support for temporary and single-use urls. Some common
 use cases include:
 
