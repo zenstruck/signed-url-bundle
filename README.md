@@ -83,27 +83,10 @@ $generator->generate('route2', ['parameter1' => 'value']); // http://example.com
 $generator->generate('route3', [], Generator::ABSOLUTE_PATH); // /route2/value?_hash=...
 ```
 
-### Temporary Urls
+### Signed URL Builder
 
-These urls expire (cannot be verified) after a certain time. They are also signed so cannot be tampered with.
-
-```php
-/** @var Zenstruck\SignedUrl\Generator $generator */
-
-(string) $generator->build('route1')->expires('+1 hour'); // http://example.com/route1?__expires=...&_hash=...
-(string) $generator->build('route2', ['parameter1' => 'value'])->expires('+1 hour'); // http://example.com/route2/value?__expires=...&_hash=...
-
-// use # of seconds
-(string) $generator->build('route1')->expires(3600); // http://example.com/route2/value?__expires=...&_hash=...
-
-// use an explicit \DateTime
-(string) $generator->build('route1')->expires(new \DateTime('+1 hour')); // http://example.com/route2/value?__expires=...&_hash=...
-```
-
-### Combination Urls
-
-You can create a [signed](#standard-signed-urls), [temporary](#temporary-urls),
-[single-use](#single-use-urls) URL using `Generator::build()`.
+You can create a signed, [temporary](#temporary-urls) and/or [single-use](#single-use-urls)
+URL using `Generator::build()`.
 
 ```php
 /** @var Zenstruck\SignedUrl\Generator $generator */
@@ -133,6 +116,23 @@ $signedUrl = $generator->build('reset_password', ['id' => $user->getId()])
 $signedUrl->expiresAt(); // \DateTimeImmutable
 $signedUrl->isTemporary(); // true
 $signedUrl->isSingleUse(); // true
+```
+
+### Temporary Urls
+
+These urls expire (cannot be verified) after a certain time. They are also signed so cannot be tampered with.
+
+```php
+/** @var Zenstruck\SignedUrl\Generator $generator */
+
+(string) $generator->build('route1')->expires('+1 hour'); // http://example.com/route1?__expires=...&_hash=...
+(string) $generator->build('route2', ['parameter1' => 'value'])->expires('+1 hour'); // http://example.com/route2/value?__expires=...&_hash=...
+
+// use # of seconds
+(string) $generator->build('route1')->expires(3600); // http://example.com/route2/value?__expires=...&_hash=...
+
+// use an explicit \DateTime
+(string) $generator->build('route1')->expires(new \DateTime('+1 hour')); // http://example.com/route2/value?__expires=...&_hash=...
 ```
 
 ## Verification
@@ -168,8 +168,10 @@ the thrown exception.
 
 ## Single-Use Urls
 
-These urls are generated with a token that should change once the url has been used. **It is up to you
-to determine this token and depends on the context.**
+These urls are generated with a token that should change once the url has been used.
+
+**CAUTION:** It is up to you to determine this token and depends on the context. This value **MUST** change
+after the token is successfully _used_, else it will still be valid.
 
 A good example is a password reset. For these urls, the token would be the current user's password.
 Once they successfully change their password the token wouldn't match so the url would become invalid.
