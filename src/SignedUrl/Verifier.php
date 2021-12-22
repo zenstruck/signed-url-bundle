@@ -24,6 +24,8 @@ final class Verifier
 
     /**
      * @param string|Request $url
+     * @param string|null    $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     *                                       {@see https://github.com/zenstruck/signed-url-bundle#single-use-urls}
      *
      * @throws UrlHasExpired         If the signed url is valid but expired
      * @throws UrlAlreadyUsed        If the url is single use and has already been used
@@ -36,6 +38,9 @@ final class Verifier
 
     /**
      * Attempt to verify the current request.
+     *
+     * @param string|null $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     *                                    {@see https://github.com/zenstruck/signed-url-bundle#single-use-urls}
      *
      * @throws \RuntimeException     If no current request available
      * @throws UrlHasExpired         If the signed url is valid but expired
@@ -53,6 +58,8 @@ final class Verifier
 
     /**
      * @param string|Request $url
+     * @param string|null    $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     *                                       {@see https://github.com/zenstruck/signed-url-bundle#single-use-urls}
      *
      * @return bool true if verified, false if not
      */
@@ -68,6 +75,9 @@ final class Verifier
     }
 
     /**
+     * @param string|null $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     *                                    {@see https://github.com/zenstruck/signed-url-bundle#single-use-urls}
+     *
      * @return bool true if verified, false if not
      *
      * @throws \RuntimeException If no current request available

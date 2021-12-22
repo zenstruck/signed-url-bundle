@@ -33,6 +33,10 @@ final class Builder
     }
 
     /**
+     * Make the signed URL "temporary".
+     *
+     * @see https://github.com/zenstruck/signed-url-bundle#temporary-urls
+     *
      * @param \DateTimeInterface|string|int $when \DateTimeInterface: the exact time the link should expire
      *                                            string: used to construct a datetime object (ie "+1 hour")
      *                                            int: # of seconds until the link expires
@@ -60,6 +64,13 @@ final class Builder
         return $this;
     }
 
+    /**
+     * Make the signed URL "single-use".
+     *
+     * @see https://github.com/zenstruck/signed-url-bundle#single-use-urls
+     *
+     * @param string $token This value MUST change once the URL is considered "used"
+     */
     public function singleUse(string $token): self
     {
         $this->singleUseToken = $token;
